@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "DA31B02A-AA04-44EC-99AE-984A864DC208",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:MaxolChessConsole.xcodeproj",
+      "identifier" : "50392E712E52415400507673",
+      "name" : "MaxolChessConsole"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:..\/MaxolChess",
+        "identifier" : "MaxolChessTests",
+        "name" : "MaxolChessTests"
+      }
+    }
+  ],
+  "version" : 1
+}
