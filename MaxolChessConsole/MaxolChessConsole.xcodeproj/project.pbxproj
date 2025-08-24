@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		50392E7E2E52445E00507673 /* MaxolChess in Frameworks */ = {isa = PBXBuildFile; productRef = 50392E7D2E52445E00507673 /* MaxolChess */; };
+		507B02B32E5B6E03004B0E7B /* MaxolLog in Frameworks */ = {isa = PBXBuildFile; productRef = 507B02B22E5B6E03004B0E7B /* MaxolLog */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -40,6 +41,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				50392E7E2E52445E00507673 /* MaxolChess in Frameworks */,
+				507B02B32E5B6E03004B0E7B /* MaxolLog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,6 +85,7 @@
 			name = MaxolChessConsole;
 			packageProductDependencies = (
 				50392E7D2E52445E00507673 /* MaxolChess */,
+				507B02B22E5B6E03004B0E7B /* MaxolLog */,
 			);
 			productName = MaxolChessConsole;
 			productReference = 50392E722E52415400507673 /* MaxolChessConsole */;
@@ -114,6 +117,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				50392E7C2E52445E00507673 /* XCLocalSwiftPackageReference "../MaxolChess" */,
+				507B02B12E5B6E03004B0E7B /* XCLocalSwiftPackageReference "../MaxolLog" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 50392E732E52415400507673 /* Products */;
@@ -306,12 +310,20 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ../MaxolChess;
 		};
+		507B02B12E5B6E03004B0E7B /* XCLocalSwiftPackageReference "../MaxolLog" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../MaxolLog;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		50392E7D2E52445E00507673 /* MaxolChess */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MaxolChess;
+		};
+		507B02B22E5B6E03004B0E7B /* MaxolLog */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MaxolLog;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

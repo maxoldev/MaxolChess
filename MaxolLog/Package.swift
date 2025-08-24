@@ -4,31 +4,21 @@
 import PackageDescription
 
 let package = Package(
-    name: "MaxolChess",
+    name: "MaxolLog",
     platforms: [
         .macOS(.v13),
-        .iOS(.v16),
+        .iOS(.v12),
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "MaxolChess",
-            targets: ["MaxolChess"]
-        )
-    ],
-    dependencies: [
-        .package(path: "../MaxolLog")
+            name: "MaxolLog",
+            targets: ["MaxolLog"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "MaxolChess",
-            dependencies: ["MaxolLog"]
-        ),
-        .testTarget(
-            name: "MaxolChessTests",
-            dependencies: ["MaxolChess", "MaxolLog"]
-        ),
+            name: "MaxolLog"),
     ]
 )
