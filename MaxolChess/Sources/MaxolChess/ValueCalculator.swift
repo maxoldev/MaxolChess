@@ -1,24 +1,24 @@
 //
-//  StaticValueEvaluator.swift
+//  ValueEvaluator.swift
 //  MaxolChess
 //
 //  Created by Maksim Solovev on 17.08.2025.
 //
 
-public protocol StaticValueCalculator {
+public protocol ValueCalculator {
     /// - Returns: Positive for whites advantage, negative for blacks
-    func calculateOnlyDefaultValues(_ position: Position) -> Double
+    func calculateOnlyDefaultValues(_ position: Position) -> PieceValue
     /// - Returns: Positive for whites advantage, negative for blacks
-    func calculate(_ position: Position) -> Double
+    func calculate(_ position: Position) -> PieceValue
 }
 
-public class StaticValueCalculatorImpl: StaticValueCalculator {
+public class ValueCalculatorImpl: ValueCalculator {
     public init() {
     }
 
-    public func calculateOnlyDefaultValues(_ position: Position) -> Double {
-        var whiteValue = 0.0
-        var blackValue = 0.0
+    public func calculateOnlyDefaultValues(_ position: Position) -> PieceValue {
+        var whiteValue: PieceValue = 0.0
+        var blackValue: PieceValue = 0.0
 
         for i in 0..<Const.baseBoardSquareCount {
             let coordinate = Coordinate(i)
@@ -34,9 +34,9 @@ public class StaticValueCalculatorImpl: StaticValueCalculator {
         return whiteValue - blackValue
     }
 
-    public func calculate(_ position: Position) -> Double {
-        var whiteValue = 0.0
-        var blackValue = 0.0
+    public func calculate(_ position: Position) -> PieceValue {
+        var whiteValue: PieceValue = 0.0
+        var blackValue: PieceValue = 0.0
 
         for i in 0..<Const.baseBoardSquareCount {
             let coordinate = Coordinate(i)

@@ -7,6 +7,7 @@
 
 import Foundation
 import MaxolChess
+@_exported import MaxolLog
 
 /// Chess game implementation
 
@@ -16,7 +17,7 @@ print("uciok")
 
 print("readyok")
 
-print(Position())
+print(Position.start)
 print(Position(fen: "r3k2r/ppp2ppp/8/3P4/6b1/bP1B4/PqP3PP/RK5R w kq - 1 17")!.prettyPrinted(unicode: false))
 print(Position.start)
 
@@ -40,14 +41,14 @@ print(p.board)
 let possibleMoveGen = PossibleMoveGeneratorImpl()
 print(possibleMoveGen.generateAllMoves(p, parentMoveId: nil))
 
-let staticValueCalc = StaticValueCalculatorImpl()
+let staticValueCalc = ValueCalculatorImpl()
 print(staticValueCalc.calculate(p))
 
 let semaphore = DispatchSemaphore(value: 0)
 
 Task {
     let pos = Position(fen: "1KR4R/qPP5/5P2/4Q1P1/1p2p2P/2pp4/3n1kp1/r7 b KQ - 0 1")!
-    let posEval = StaticPositionEvaluatorImpl()
+    let posEval = PositionEvaluatorImpl()
     print(posEval.evaluate(pos))
 
     let engine = EngineImpl(gameState: GameState(ourSide: .black, position: pos))

@@ -44,24 +44,24 @@ public protocol Engine {
 
 public class EngineImpl: Engine {
     private let configuration: EngineConfiguration
-    private let staticValueEvaluator: StaticValueCalculator
-    private let staticPositionEvaluator: StaticPositionEvaluator
-    private let validMoveGenerator: ValidMoveGenerator
+    private let valueCalculator: ValueCalculator
+    private let positionEvaluator: PositionEvaluator
+    private let legalMoveGenerator: LegalMoveGenerator
 
     private var currentState: GameState
     private let moveResultRepo = MoveResultRepo()
 
     public init(
         configuration: EngineConfiguration = EngineConfiguration(),
-        staticValueEvaluator: StaticValueCalculator = StaticValueCalculatorImpl(),
-        staticPositionEvaluator: StaticPositionEvaluator = StaticPositionEvaluatorImpl(),
-        validMoveGenerator: ValidMoveGenerator = ValidMoveGeneratorImpl(),
+        valueCalculator: ValueCalculator = ValueCalculatorImpl(),
+        positionEvaluator: PositionEvaluator = PositionEvaluatorImpl(),
+        legalMoveGenerator: LegalMoveGenerator = LegalMoveGeneratorImpl(),
         gameState: GameState = GameState(ourSide: .white, position: Position.start)
     ) {
         self.configuration = configuration
-        self.staticValueEvaluator = staticValueEvaluator
-        self.staticPositionEvaluator = staticPositionEvaluator
-        self.validMoveGenerator = validMoveGenerator
+        self.valueCalculator = valueCalculator
+        self.positionEvaluator = positionEvaluator
+        self.legalMoveGenerator = legalMoveGenerator
         self.currentState = gameState
     }
 
@@ -75,25 +75,23 @@ public class EngineImpl: Engine {
     }
 
     public func calculateOurBestMove() async -> Move? {
-        print(currentState.position)
-        let validMoves = validMoveGenerator.generateValidMoves(currentState.position, parentMoveId: nil)
-        print(validMoves)
-        var checkMovesToConsider: [Move] = []
-        var stalemateMovesToConsider: [Move] = []
-        var normalMovesToConsider: [Move] = []
-        var drawMoves: [Move] = []
+        logDebug(currentState.position, category: .engine)
+        let bench = Benchmark()
+
+        let moves = legalMoveGenerator.generateLegalMoves(currentState.position, parentMoveId: nil)
+        var movesToConsider: [Move] = []
         var invalidResultMovesCount = 0
 
-        var maxAdvantage = -100000.0
-
-        for move in validMoves {
+        for move in moves {
             let newPosition = currentState.position.applied(move: move)
-            let result = staticPositionEvaluator.evaluate(newPosition)
+            let result = positionEvaluator.evaluate(newPosition)
+
             switch result {
             case let .kingCheckmated(side):
                 if side == currentState.ourSide {
                     continue
                 } else {
+                    logDebug("BEST MOVE: \(move) \(bench.checkpoint())", category: .engine)
                     return move
                 }
 
@@ -101,47 +99,39 @@ public class EngineImpl: Engine {
                 if side == currentState.ourSide {
                     continue
                 } else {
-                    checkMovesToConsider.append(move)
+                    movesToConsider.append(move)
                 }
 
             case .draw:
-                drawMoves.append(move)
-
-            case let .kingStalemated(side):
-                stalemateMovesToConsider.append(move)
+                fallthrough
+            case .kingStalemated(_):
+                fallthrough
+            case .normal(_):
+                movesToConsider.append(move)
 
             case let .invalid(reason):
                 print(reason)
                 invalidResultMovesCount += 1
-
-            case let .normal(advantage):
-                if advantage > maxAdvantage {
-                    maxAdvantage = advantage
-                    normalMovesToConsider.append(move)
-                }
-                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, gain: <#T##Double#>, loss: <#T##Double#>, staticCalculationValue: advantage, gainMaxPotential: <#T##Double#>, lossMaxPotential: <#T##Double#>)
-                await moveResultRepo.moveResultReceived(result)
             }
         }
 
-        if invalidResultMovesCount == validMoves.count {
-            // No valid moves
+        if invalidResultMovesCount == moves.count {
+            logDebug("NO VALID MOVES🚫 \(bench.checkpoint())", category: .engine)
             return nil
         }
-        
-        let captureMovesToConsider: [Move] = normalMovesToConsider.filter { $0 is CaptureMove }
-        var movesToConsider = checkMovesToConsider + captureMovesToConsider + normalMovesToConsider
-        if movesToConsider.isEmpty {
-            movesToConsider = drawMoves
-        }
-        if movesToConsider.isEmpty {
-            movesToConsider = stalemateMovesToConsider
+
+        await moveResultRepo.clear()
+
+        for move in movesToConsider {
+            await analyze(move: move, positionBeforeMove: currentState.position)
         }
 
-        print(movesToConsider.first as Any)
-        return movesToConsider.first
+        let bestMoveId = await moveResultRepo.bestMoveId(for: currentState.ourSide)
+        let bestMove = movesToConsider.first(where: { $0.id == bestMoveId })
+        logDebug("BEST MOVE:", bestMove, bench.checkpoint(), category: .engine)
+        return bestMove
     }
-
+    
     public func setOurMove(_ move: Move) {
         apply(move: move)
 //        let evaluation = staticPositionEvaluator.evaluate(positionAfterMove)
@@ -161,13 +151,44 @@ public class EngineImpl: Engine {
         let positionAfterMove = currentState.position.applied(move: move)
         currentState.position = positionAfterMove
         currentState.playedMoves.append(move)
-
     }
 
-    private func analyze(move: Move) {
-        let validMoves = validMoveGenerator.generateValidMoves(currentState.position, parentMoveId: nil)
-        let newPosition = currentState.position.applied(move: move)
-        let result = staticPositionEvaluator.evaluate(newPosition)
+    private func analyze(move: Move, positionBeforeMove: Position) async {
+        var newPosition = positionBeforeMove.applied(move: move)
+        newPosition.turn = currentState.ourSide.opposite
+        let opponentMoves = legalMoveGenerator.generateLegalMoves(newPosition, parentMoveId: move.id)
 
+        for opponentMove in opponentMoves {
+            await Task.yield()
+
+            let posAfterOpponentMove = newPosition.applied(move: opponentMove)
+            let result = positionEvaluator.evaluate(posAfterOpponentMove)
+
+            switch result {
+            case let .kingCheckmated(side):
+                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: side == .white ? -1000 : 1000)
+                await moveResultRepo.moveResultReceived(result)
+
+            case let .kingChecked(side):
+                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: side == .white ? -100 : 100)
+                await moveResultRepo.moveResultReceived(result)
+
+            case .draw:
+                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: 0)
+                await moveResultRepo.moveResultReceived(result)
+
+            case let .kingStalemated(side):
+                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: 0)
+                await moveResultRepo.moveResultReceived(result)
+
+            case let .invalid(reason):
+                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: currentState.ourSide == .white ? 1000 : -1000)
+                await moveResultRepo.moveResultReceived(result)
+
+            case let .normal(advantage):
+                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: advantage)
+                await moveResultRepo.moveResultReceived(result)
+            }
+        }
     }
 }

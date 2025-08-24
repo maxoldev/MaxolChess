@@ -8,8 +8,7 @@
 public enum Const {
     public static let baseBoardSize = 8
     public static let baseBoardSquareCount = baseBoardSize * baseBoardSize
-    public static let logMoveId = false
-    public static let boardCoordinateCoefficients: [Double] = [
+    public static let boardCoordinateCoefficients: [PieceValue] = [
     // ┌──────────────────────────────────────────────────────┐
         -0.5,  -0.4,  -0.4,  -0.4,  -0.4,  -0.4,  -0.4,  -0.5,
         -0.4,  -0.2,   0.0,   0.0,   0.0,   0.0,  -0.2,  -0.4,
@@ -23,7 +22,7 @@ public enum Const {
     //    a      b      c      d      e      f      g      h
     ]
 
-    public static let boardCoordinateCoefficientsForWhiteKing: [Double] = [
+    public static let boardCoordinateCoefficientsForWhiteKing: [PieceValue] = [
     // ┌───────────────────────────────────────────────────────┐
         -0.3,  -0.4,  -0.4,  -0.5,  -0.5,  -0.4,  -0.4,  -0.3,
         -0.3,  -0.4,  -0.4,  -0.5,  -0.5,  -0.4,  -0.4,  -0.3,
@@ -36,5 +35,5 @@ public enum Const {
     // └──────────────────────────────────────────────────────┘
     //    a      b      c      d      e      f      g      h
     ]
-    public static let boardCoordinateCoefficientsForBlackKing: [Double] = boardCoordinateCoefficientsForWhiteKing.reversed()
+    public static let boardCoordinateCoefficientsForBlackKing: [PieceValue] = boardCoordinateCoefficientsForWhiteKing.reversed()
 }

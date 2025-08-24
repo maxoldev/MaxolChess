@@ -11,7 +11,7 @@ import Testing
 
 struct CheckmatesTest {
     @Test func checkmates() async throws {
-        let positionEval = StaticPositionEvaluatorImpl()
+        let positionEval = PositionEvaluatorImpl()
         let val = positionEval.evaluate(
             Position(
                 Board(

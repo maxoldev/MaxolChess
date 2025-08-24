@@ -9,10 +9,6 @@ import Foundation
 
 public typealias MoveId = UUID
 
-public enum Moves {
-    case reposition, capture, enPassant, castling, promotion
-}
-
 public protocol Move {
     var id: MoveId { get }
     var parentMoveId: UUID? { get }
@@ -32,7 +28,7 @@ public struct RepositionMove: Move {
 
 extension RepositionMove: CustomStringConvertible {
     public var description: String {
-        "\(piece)\(from)\(to)\(Const.logMoveId ? " \(id.shortString)\(parentMoveId.map { "-"+$0.shortString } ?? "")" : "")"
+        "\(piece)\(from)-\(to)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
     }
 }
 
@@ -47,7 +43,7 @@ public struct CaptureMove: Move {
 
 extension CaptureMove: CustomStringConvertible {
     public var description: String {
-        "\(piece)x\(capture)\(from)\(to)\(Const.logMoveId ? " \(id.shortString)\(parentMoveId.map { "-"+$0.shortString } ?? "")" : "")"
+        "\(piece)x\(capture)\(from)-\(to)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
     }
 }
 
@@ -59,7 +55,7 @@ public struct CastlingMove: Move {
 
 extension CastlingMove: CustomStringConvertible {
     public var description: String {
-        "\(side)\(Const.logMoveId ? " \(id.shortString)\(parentMoveId.map { "-"+$0.shortString } ?? "")" : "")"
+        "\(side)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "←"+$0.shortString } ?? "")" : "")"
     }
 }
 
@@ -75,6 +71,6 @@ public struct PromotionMove: Move {
 
 extension PromotionMove: CustomStringConvertible {
     public var description: String {
-        "\(piece)\(capture.map { "x"+$0.description } ?? "")→\(promotedPiece) \(from)\(to)\(Const.logMoveId ? " \(id.shortString)\(parentMoveId.map { "-"+$0.shortString } ?? "")" : "")"
+        "\(piece)\(capture.map { "x"+$0.description } ?? "")→\(promotedPiece) \(from)-\(to)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
     }
 }

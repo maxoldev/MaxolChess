@@ -1,5 +1,5 @@
 //
-//  ValidMovesTest.swift
+//  LegalMoveGeneratorTest.swift
 //  MaxolChess
 //
 //  Created by Maksim Solovev on 19.08.2025.
@@ -9,10 +9,10 @@ import Testing
 
 @testable import MaxolChess
 
-struct ValidMovesTest {
-    let validMoveGen = ValidMoveGeneratorImpl()
+struct LegalMoveGeneratorTest {
+    let legalMoveGen = LegalMoveGeneratorImpl()
 
-    @Test func validMoves() async throws {
+    @Test func legalMoves() async throws {
         let pos = Position(
             Board(
                 prettyPrinted: """
@@ -31,7 +31,7 @@ struct ValidMovesTest {
             )!,
             turn: .black
         )
-        let moves = validMoveGen.generateValidMoves(pos, parentMoveId: nil)
+        let moves = legalMoveGen.generateLegalMoves(pos, parentMoveId: nil)
         print(moves)
         #expect(moves.count == 1)
         let move = try #require(moves[0] as? RepositionMove)
@@ -40,8 +40,8 @@ struct ValidMovesTest {
 
     @Test func movesFromStartPosition() async throws {
         let pos = Position.start
-        let validMoves = validMoveGen.generateValidMoves(pos, parentMoveId: nil)
-        let repositionMoves = try #require(validMoves as? [RepositionMove])
+        let legalMoves = legalMoveGen.generateLegalMoves(pos, parentMoveId: nil)
+        let repositionMoves = try #require(legalMoves as? [RepositionMove])
 
         let expectedMoves = [
             RepositionMove(parentMoveId: nil, piece: Piece(.white, .knight), from: "b1", to: "a3"),

@@ -1,5 +1,5 @@
 //
-//  StaticValueCalculationTest.swift
+//  ValueCalculatorTest.swift
 //  MaxolChess
 //
 //  Created by Maksim Solovev on 18.08.2025.
@@ -9,9 +9,9 @@ import Testing
 
 @testable import MaxolChess
 
-struct StaticValueCalculationTest {
+struct ValueCalculatorTest {
     @Test func defaultValue() async throws {
-        let staticValueCalc = StaticValueCalculatorImpl()
+        let staticValueCalc = ValueCalculatorImpl()
 
         #expect(staticValueCalc.calculateOnlyDefaultValues(Position.start) == 0)
 
@@ -40,7 +40,7 @@ struct StaticValueCalculationTest {
     }
 
     @Test func scaledValue() async throws {
-        let staticValueCalc = StaticValueCalculatorImpl()
+        let staticValueCalc = ValueCalculatorImpl()
 
         #expect(staticValueCalc.calculate(Position.start) == 0)
 

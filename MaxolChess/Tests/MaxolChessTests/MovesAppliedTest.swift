@@ -12,7 +12,7 @@ import Testing
 struct MovesAppliedTest {
     @Test func reposition() async throws {
         let move = RepositionMove(parentMoveId: nil, piece: Piece(.white, .pawn), from: "e2", to: "e4")
-        var pos = Position(Board(pieces: (Piece(.white, .pawn), "e2")))
+        var pos = Position(Board(pieces: (Piece(.white, .pawn), "e2")), turn: .white)
         var newPos = pos.applied(move: move)
         #expect(newPos.board.fenString == "8/8/8/8/4P3/8/8/8")
 

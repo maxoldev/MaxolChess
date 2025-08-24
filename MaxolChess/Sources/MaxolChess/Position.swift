@@ -23,7 +23,7 @@ public struct Side {
 }
 
 public struct Position {
-    public private(set) var board = Board() {
+    public private(set) var board: Board {
         didSet {
             searchAndSetKingCoordinates()
         }
@@ -33,13 +33,13 @@ public struct Position {
         block(&board)
     }
 
-    public var turn: PieceColor = .white
+    public var turn: PieceColor
     public private(set) var castlingRights: [PieceColor: Set<CastlingSide>] = [.white: [], .black: []]
     public private(set) var enPassantTargetCoordinate: Coordinate?
     public var halfMoveCountSinceLastCaptureOrPawnMove = 0
     public var fullMoveIndex = 0
 
-    public init(_ board: Board = Board(), turn: PieceColor = .white) {
+    public init(_ board: Board, turn: PieceColor) {
         self.board = board
         self.turn = turn
         searchAndSetKingCoordinates()
@@ -89,7 +89,7 @@ extension Position: CustomStringConvertible {
         self.prettyPrinted()
     }
 
-    public func prettyPrinted(unicode: Bool = true) -> String {
+    public func prettyPrinted(unicode: Bool = Config.unicodePieceNotation) -> String {
         "\(board.prettyPrinted(unicode: unicode))\n\(turn) to move"
     }
 }

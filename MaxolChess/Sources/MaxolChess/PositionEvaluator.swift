@@ -1,12 +1,12 @@
 //
-//  StaticPositionEvaluator.swift
+//  PositionEvaluator.swift
 //  MaxolChess
 //
 //  Created by Maksim Solovev on 17.08.2025.
 //
 
 public enum PositionValue: Equatable {
-    case normal(advantage: Double)
+    case normal(advantage: PieceValue)
     case kingChecked(PieceColor)
     case kingCheckmated(PieceColor)
     case kingStalemated(PieceColor)
@@ -14,16 +14,16 @@ public enum PositionValue: Equatable {
     case invalid(reason: String)
 }
 
-public protocol StaticPositionEvaluator: AnyObject {
+public protocol PositionEvaluator: AnyObject {
     func evaluate(_ position: Position) -> PositionValue
 }
 
-public class StaticPositionEvaluatorImpl: StaticPositionEvaluator {
-    let staticValueCalculator: StaticValueCalculator
+public class PositionEvaluatorImpl: PositionEvaluator {
+    let staticValueCalculator: ValueCalculator
     let possibleMoveGenerator: PossibleMoveGenerator
 
     public init(
-        staticValueCalculator: StaticValueCalculator = StaticValueCalculatorImpl(),
+        staticValueCalculator: ValueCalculator = ValueCalculatorImpl(),
         possibleMoveGenerator: PossibleMoveGenerator = PossibleMoveGeneratorImpl()
     ) {
         self.staticValueCalculator = staticValueCalculator
@@ -31,6 +31,8 @@ public class StaticPositionEvaluatorImpl: StaticPositionEvaluator {
     }
 
     public func evaluate(_ position: Position) -> PositionValue {
+        print(position)
+
         var kingsInCheck = Set<PieceColor>()
         var kingsInCheckmate = Set<PieceColor>()
 
@@ -43,7 +45,7 @@ public class StaticPositionEvaluatorImpl: StaticPositionEvaluator {
 
                 if !attackerMovesWithCheck.isEmpty {
                     kingsInCheck.insert(kingColor)
-                    print("\(kingColor) king is in check!")
+                    logDebug("\(kingColor) king is in check!", category: .evaluator)
                     var defendersPosition = position
                     defendersPosition.turn = kingColor
                     let defenderMoves = possibleMoveGenerator.generateAllMoves(defendersPosition, parentMoveId: nil)
@@ -52,8 +54,11 @@ public class StaticPositionEvaluatorImpl: StaticPositionEvaluator {
                         var positionAfterDefenderMove = defendersPosition.applied(move: defenderMove)
                         positionAfterDefenderMove.turn = kingColor.opposite
                         let sideToMoveKingCoordinateAfterDefenderMove = positionAfterDefenderMove.kingCoordinate(kingColor)
-                        let attackerMovesWithCheckAfterDefenderMove = possibleMoveGenerator.generateAllMoves(positionAfterDefenderMove, parentMoveId: nil)
-                            .filter { ($0 as? CaptureMove)?.to == sideToMoveKingCoordinateAfterDefenderMove }
+                        let attackerMovesWithCheckAfterDefenderMove = possibleMoveGenerator.generateAllMoves(
+                            positionAfterDefenderMove,
+                            parentMoveId: nil
+                        )
+                        .filter { ($0 as? CaptureMove)?.to == sideToMoveKingCoordinateAfterDefenderMove }
 
                         if !attackerMovesWithCheckAfterDefenderMove.isEmpty {
                             stillInCheckCount += 1

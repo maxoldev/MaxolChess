@@ -162,7 +162,7 @@ extension Board: CustomStringConvertible {
         self.prettyPrinted()
     }
 
-    public func prettyPrinted(unicode: Bool = true) -> String {
+    public func prettyPrinted(unicode: Bool = Config.unicodePieceNotation) -> String {
         let main: String = ranks.enumerated().reversed().map { index, rank in
             "\(index + 1)  " + rank.map { $0.map { $0.char(unicode: unicode) } ?? "." }.joined(separator: " ") + " "
         }.joined(separator: "\n")

@@ -5,6 +5,8 @@
 //  Created by Maksim Solovev on 15.08.2025.
 //
 
+public typealias PieceValue = Double
+
 public enum PieceType: String {
     case king = "K"
     case queen = "Q"
@@ -13,7 +15,7 @@ public enum PieceType: String {
     case knight = "N"
     case pawn = "P"
 
-    public var defaultValue: Double {
+    public var defaultValue: PieceValue {
         switch self {
         case .king: return 1000
         case .queen: return 9
@@ -25,7 +27,7 @@ public enum PieceType: String {
     }
 }
 
-public enum PieceColor: String {
+public enum PieceColor: String, Sendable {
     case white = "w"
     case black = "b"
 
@@ -86,7 +88,7 @@ extension Piece: CustomStringConvertible {
         char()
     }
 
-    public func char(unicode: Bool = true) -> String {
+    public func char(unicode: Bool = Config.unicodePieceNotation) -> String {
         if unicode {
             switch color {
             case .white:
