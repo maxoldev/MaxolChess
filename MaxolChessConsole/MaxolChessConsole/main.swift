@@ -17,44 +17,58 @@ print("uciok")
 
 print("readyok")
 
-print(Position.start)
-print(Position(fen: "r3k2r/ppp2ppp/8/3P4/6b1/bP1B4/PqP3PP/RK5R w kq - 1 17")!.prettyPrinted(unicode: false))
-print(Position.start)
+let opponentColor = PieceColor.white
+let engine = EngineImpl(gameState: GameState(ourSide: opponentColor.opposite, position: Position.start))
+let possibleMoveGenerator = PossibleMoveGeneratorImpl()
+let positionEvaluator = PositionEvaluatorImpl()
 
-var p = Position.start
-p.modify { board in
-    board = Board()
+print("You are playing \(opponentColor)")
 
-    board["d5"] = Piece(.black, .pawn)
-    board["f6"] = Piece(.black, .pawn)
-    board["c7"] = Piece(.black, .bishop)
-    board["d7"] = Piece(.black, .knight)
-    board["e7"] = Piece(.black, .rook)
-    board["h5"] = Piece(.black, .queen)
-    board["f3"] = Piece(.black, .king)
+while true {
+    print("Current position:", engine.getCurrentState().position)
+    print("\nEnter your move: ", terminator: "")
+    if let input = readLine() {
+        guard input.count == 4 else {
+            print("Ivalid move format. Use long algebraic notation e.g. e2e4")
+            continue
+        }
 
-    board["e5"] = Piece(.white, .king)
-    print(board)
+        let fromStr = String(input.prefix(2))
+        let toStr = String(input.suffix(2))
+        let from = Coordinate(fromStr)
+        let to = Coordinate(toStr)
+
+        let pos = engine.getCurrentState().position
+        guard let piece = pos.board[from], piece.color == opponentColor else {
+            print("Invalid coordinate from \(from). No \(opponentColor) piece on this square")
+            continue
+        }
+        
+        let allMoves = possibleMoveGenerator.generateAllMoves(engine.getCurrentState().position, from: from, parentMoveId: nil)
+        var possibleMoves = [Move]()
+        for move in allMoves {
+            let posAfterMove = pos.applied(move: move)
+            let evaluation = positionEvaluator.evaluate(posAfterMove)
+            if evaluation != .kingChecked(opponentColor) && evaluation != .kingCheckmated(opponentColor) {
+                possibleMoves.append(move)
+            }
+        }
+        guard let opponentMove = possibleMoves.first(where: { ($0 as? RepositionMove)?.from == from && ($0 as? RepositionMove)?.to == to || ($0 as? CaptureMove)?.from == from && ($0 as? CaptureMove)?.to == to }) else {
+            print("No legal move \(from)\(to) found")
+            continue
+        }
+        print("Opponent's move: \(opponentMove)")
+        engine.setOpponentsMove(opponentMove)
+        print("Position after opponent's move:", engine.getCurrentState().position)
+
+        print("\nThinking...\n")
+        let bestMove = await engine.calculateOurBestMove()
+        print("BEST FOUND MOVE:", bestMove)
+        if let bestMove {
+            engine.setOurMove(bestMove)
+        }
+    } else {
+        print("exit")
+        break
+    }
 }
-print(p.board)
-
-let possibleMoveGen = PossibleMoveGeneratorImpl()
-print(possibleMoveGen.generateAllMoves(p, parentMoveId: nil))
-
-let staticValueCalc = ValueCalculatorImpl()
-print(staticValueCalc.calculate(p))
-
-let semaphore = DispatchSemaphore(value: 0)
-
-Task {
-    let pos = Position(fen: "1KR4R/qPP5/5P2/4Q1P1/1p2p2P/2pp4/3n1kp1/r7 b KQ - 0 1")!
-    let posEval = PositionEvaluatorImpl()
-    print(posEval.evaluate(pos))
-
-    let engine = EngineImpl(gameState: GameState(ourSide: .black, position: pos))
-    let move = await engine.calculateOurBestMove()
-    print(move ?? "None")
-    semaphore.signal()
-}
-
-semaphore.wait()
