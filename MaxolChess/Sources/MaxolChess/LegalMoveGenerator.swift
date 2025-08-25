@@ -12,14 +12,14 @@ public protocol LegalMoveGenerator {
 
 public class LegalMoveGeneratorImpl: LegalMoveGenerator {
     private let possibleMoveGenerator: PossibleMoveGenerator
-    private let staticPositionEvaluator: PositionEvaluator
+    private let positionEvaluator: PositionEvaluator
 
     public init(
         possibleMoveGenerator: PossibleMoveGenerator = PossibleMoveGeneratorImpl(),
-        staticPositionEvaluator: PositionEvaluator = PositionEvaluatorImpl()
+        positionEvaluator: PositionEvaluator = PositionEvaluatorImpl()
     ) {
         self.possibleMoveGenerator = possibleMoveGenerator
-        self.staticPositionEvaluator = staticPositionEvaluator
+        self.positionEvaluator = positionEvaluator
     }
 
     public func generateLegalMoves(_ position: Position, parentMoveId: MoveId?) -> [Move] {
@@ -34,7 +34,7 @@ public class LegalMoveGeneratorImpl: LegalMoveGenerator {
                 var possibleMoves = [Move]()
                 for move in allMoves {
                     let posAfterMove = position.applied(move: move)
-                    let evaluation = staticPositionEvaluator.evaluate(posAfterMove)
+                    let evaluation = positionEvaluator.evaluate(posAfterMove)
                     if evaluation != .kingChecked(sideToMove) && evaluation != .kingCheckmated(sideToMove) {
                         possibleMoves.append(move)
                     }

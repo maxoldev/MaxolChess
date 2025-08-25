@@ -31,8 +31,6 @@ public class PositionEvaluatorImpl: PositionEvaluator {
     }
 
     public func evaluate(_ position: Position) -> PositionValue {
-        print(position)
-
         var kingsInCheck = Set<PieceColor>()
         var kingsInCheckmate = Set<PieceColor>()
 

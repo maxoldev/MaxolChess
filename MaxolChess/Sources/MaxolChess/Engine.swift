@@ -111,6 +111,7 @@ public class EngineImpl: Engine {
 
             case let .invalid(reason):
                 print(reason)
+                print(newPosition)
                 invalidResultMovesCount += 1
             }
         }
@@ -134,12 +135,12 @@ public class EngineImpl: Engine {
     
     public func setOurMove(_ move: Move) {
         apply(move: move)
-//        let evaluation = staticPositionEvaluator.evaluate(positionAfterMove)
+        currentState.position.turn = currentState.ourSide.opposite
     }
 
     public func setOpponentsMove(_ move: Move) {
         apply(move: move)
-//        let evaluation = staticPositionEvaluator.evaluate(positionAfterMove)
+        currentState.position.turn = currentState.ourSide
     }
 
     public func updateConfiguration(_ configuration: EngineConfiguration) {
