@@ -29,10 +29,9 @@ struct LegalMoveGeneratorTest {
                        a b c d e f g h
                     """
             )!,
-            turn: .black
+            sideToMove: .black
         )
         let moves = legalMoveGen.generateLegalMoves(pos, parentMoveId: nil)
-        print(moves)
         #expect(moves.count == 1)
         let move = try #require(moves[0] as? RepositionMove)
         #expect(move.from == "f6" && move.to == "g6")

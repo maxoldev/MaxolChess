@@ -7,6 +7,8 @@
 
 public protocol PossibleMoveGenerator {
     /// Including not possible due to check to own king
+    func generateAllMoves(_ position: Position) -> [Move]
+    /// Including not possible due to check to own king
     func generateAllMoves(_ position: Position, parentMoveId: MoveId?) -> [Move]
     /// Including not possible due to check to own king
     func generateAllMoves(_ position: Position, from coordinate: Coordinate, parentMoveId: MoveId?) -> [Move]
@@ -16,8 +18,12 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
     public init() {
     }
 
+    public func generateAllMoves(_ position: Position) -> [Move] {
+        return generateAllMoves(position, parentMoveId: nil)
+    }
+    
     public func generateAllMoves(_ position: Position, parentMoveId: MoveId?) -> [Move] {
-        let sideToMove = position.turn
+        let sideToMove = position.sideToMove
 
         var moves = [Move]()
 
@@ -66,12 +72,12 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
         // Capture
         if let newCoordinate = coordinate.advancedBy(-1, moveDirection) {
             if let other = position.board[newCoordinate], other.color != piece.color {
-                moves.append(CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, capture: other))
+                moves.append(CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, captured: other))
             }
         }
         if let newCoordinate = coordinate.advancedBy(1, moveDirection) {
             if let other = position.board[newCoordinate], other.color != piece.color {
-                moves.append(CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, capture: other))
+                moves.append(CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, captured: other))
             }
         }
 
@@ -117,7 +123,7 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
                 if let other = position.board[newCoordinate] {
                     if other.color != piece.color {
                         moves.append(
-                            CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, capture: other)
+                            CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, captured: other)
                         )
                     }
                 } else {
@@ -154,7 +160,7 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
                 if let other = position.board[newCoordinate] {
                     if other.color != piece.color {
                         moves.append(
-                            CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, capture: other)
+                            CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, captured: other)
                         )
                     }
 
@@ -189,7 +195,7 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
                 if let other = position.board[newCoordinate] {
                     if other.color != piece.color {
                         moves.append(
-                            CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, capture: other)
+                            CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, captured: other)
                         )
                     }
 
@@ -237,7 +243,7 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
                 if let other = position.board[newCoordinate] {
                     if other.color != piece.color {
                         moves.append(
-                            CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, capture: other)
+                            CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, captured: other)
                         )
                     }
                 } else {

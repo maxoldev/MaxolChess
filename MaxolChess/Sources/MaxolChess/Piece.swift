@@ -7,7 +7,7 @@
 
 public typealias PieceValue = Double
 
-public enum PieceType: String {
+public enum PieceType: String, Sendable {
     case king = "K"
     case queen = "Q"
     case rook = "R"
@@ -45,7 +45,7 @@ extension PieceColor: CustomStringConvertible {
     }
 }
 
-public struct Piece: Equatable {
+public struct Piece: Equatable, Sendable {
     public let color: PieceColor
     public let type: PieceType
 

@@ -6,32 +6,49 @@
 //
 
 public struct MoveResult {
-    public let moveId: MoveId
-    public let parentMoveId: MoveId?
+    public let side: PieceColor
+//    public let moveId: MoveId
+//    public let parentMoveId: MoveId?
+    public let move: any Move
     public let depth: Int
-    public let advantage: PieceValue
+    public let gain: PieceValue
+    public let isEnemyKingChecked: Bool
+    public let isEnemyKingCheckmated: Bool
+    public let isEnemyKingStalemated: Bool
+    public let isDraw: Bool
+//    public var maxPotentialLoss: PieceValue
 }
 
 actor MoveResultRepo {
-    private var moveResults: [MoveId: MoveResult] = [:]
+    enum MoveResultRepo: Error {
+        case moveResultNotFound
+    }
 
-    func bestMoveId(for side: PieceColor) -> MoveId? {
-        if side == .white {
-            moveResults.values.sorted { $0.advantage > $1.advantage }.first?.moveId
-        } else {
-            moveResults.values.sorted { $0.advantage < $1.advantage }.first?.moveId
+    private var moveResults = [MoveId: MoveResult]()
+    private var zeroDepthMoves = [any Move]()
+
+    func bestMove() async -> Move? {
+        let zeroDepthMoveResults = zeroDepthMoves.map { moveResults[$0.id]! }
+        let checkmates = zeroDepthMoveResults.filter { $0.isEnemyKingCheckmated }
+        if let firstCheckmate = checkmates.first?.move {
+            return firstCheckmate
         }
+        
+        let move = zeroDepthMoves.sorted { moveResults[$0.id]!.gain > moveResults[$1.id]!.gain }.first
+        logConsoleMarked(moveResults[move!.id])
+        return move
     }
 
-    func moveResultReceived(_ result: MoveResult) async {
-        moveResults[result.moveId] = result
-//        if let parentMoveId = result.parentMoveId, var parentMoveResult = moveResults[parentMoveId] {
-//            parentMoveResult.gainMaxPotential = max(result.gainMaxPotential, parentMoveResult.gainMaxPotential)
-//            parentMoveResult.lossMaxPotential = min(result.lossMaxPotential, parentMoveResult.lossMaxPotential)
-//        }
+    func add(move: any Move) async {
+        zeroDepthMoves.append(move)
     }
 
+    func add(moveResult: MoveResult) async {
+        moveResults[moveResult.move.id] = moveResult
+    }
+    
     func clear() {
+        zeroDepthMoves.removeAll()
         moveResults.removeAll()
     }
 }

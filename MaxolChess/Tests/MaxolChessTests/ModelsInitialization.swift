@@ -32,7 +32,7 @@ struct ModelsInitialization {
             let coord = Coordinate(idx)
             #expect(board[coord] == expected[idx])
             #expect(pos.board[coord] == expected[idx])
-            #expect(pos.turn == .white)
+            #expect(pos.sideToMove == .white)
         }
 
         #expect(Board(fenBoardSubstring: fenBoard)?.fenString == fenBoard)
@@ -47,7 +47,7 @@ struct ModelsInitialization {
         #expect(pos.halfMoveCountSinceLastCaptureOrPawnMove == 0)
         #expect(pos.fullMoveIndex == 1)
 
-        #expect(try #require(Position(fen: "\(fenBoard) b KQkq - 0 1")).turn == .black)
+        #expect(try #require(Position(fen: "\(fenBoard) b KQkq - 0 1")).sideToMove == .black)
 
         #expect(try #require(Position(fen: "\(fenBoard) b KQkq - 10 11")).halfMoveCountSinceLastCaptureOrPawnMove == 10)
         #expect(try #require(Position(fen: "\(fenBoard) b KQkq - 10 11")).fullMoveIndex == 11)

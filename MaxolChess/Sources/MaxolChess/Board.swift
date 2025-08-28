@@ -8,7 +8,7 @@
 public typealias Square = Piece?
 
 /// The game is played on a square board of rows (called ranks, coordinate Y) and columns (called files, coordinate X)
-public struct Board: Equatable {
+public struct Board: Equatable, Sendable {
     private var squares: [Square]
 
     public init(squares: [Square] = Array(repeating: nil, count: Const.baseBoardSize * Const.baseBoardSize)) {
@@ -85,7 +85,7 @@ extension Board: Sequence {
 }
 
 extension Board {
-    nonisolated(unsafe) public static let start = Board(fenBoardSubstring: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")!
+    public static let start = Board(fenBoardSubstring: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")!
 
     public init?(fenBoardSubstring: String) {
         let rankStrings = fenBoardSubstring.split(separator: "/").map(String.init)

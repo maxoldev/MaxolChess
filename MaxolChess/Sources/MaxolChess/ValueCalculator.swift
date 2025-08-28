@@ -5,18 +5,29 @@
 //  Created by Maksim Solovev on 17.08.2025.
 //
 
+public struct ValueCalculation: Equatable {
+    public let white: PieceValue
+    public let black: PieceValue
+
+    public subscript (_ color: PieceColor) -> PieceValue {
+        get {
+            color == .white ? white : black
+        }
+    }
+}
+
 public protocol ValueCalculator {
-    /// - Returns: Positive for whites advantage, negative for blacks
-    func calculateOnlyDefaultValues(_ position: Position) -> PieceValue
-    /// - Returns: Positive for whites advantage, negative for blacks
-    func calculate(_ position: Position) -> PieceValue
+    /// - Returns: Doesn't take pieces' placement into account
+    func calculateOnlyDefaultValues(_ position: Position) -> ValueCalculation
+    /// - Returns: Takes pieces' placement into account
+    func calculate(_ position: Position) -> ValueCalculation
 }
 
 public class ValueCalculatorImpl: ValueCalculator {
     public init() {
     }
 
-    public func calculateOnlyDefaultValues(_ position: Position) -> PieceValue {
+    public func calculateOnlyDefaultValues(_ position: Position) -> ValueCalculation {
         var whiteValue: PieceValue = 0.0
         var blackValue: PieceValue = 0.0
 
@@ -31,10 +42,10 @@ public class ValueCalculatorImpl: ValueCalculator {
             }
         }
 
-        return whiteValue - blackValue
+        return ValueCalculation(white: whiteValue, black: blackValue)
     }
 
-    public func calculate(_ position: Position) -> PieceValue {
+    public func calculate(_ position: Position) -> ValueCalculation {
         var whiteValue: PieceValue = 0.0
         var blackValue: PieceValue = 0.0
 
@@ -53,6 +64,6 @@ public class ValueCalculatorImpl: ValueCalculator {
             }
         }
 
-        return whiteValue - blackValue
+        return ValueCalculation(white: whiteValue, black: blackValue)
     }
 }

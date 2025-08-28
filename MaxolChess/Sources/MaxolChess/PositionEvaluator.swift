@@ -5,83 +5,76 @@
 //  Created by Maksim Solovev on 17.08.2025.
 //
 
-public enum PositionValue: Equatable {
-    case normal(advantage: PieceValue)
-    case kingChecked(PieceColor)
-    case kingCheckmated(PieceColor)
-    case kingStalemated(PieceColor)
-    case draw
-    case invalid(reason: String)
+public struct PositionEvaluation {
+    public enum State {
+        case normal
+        case kingChecked
+        case kingCheckmated
+        case kingStalemated
+        case draw
+    }
+    public let state: State
+    public let values: ValueCalculation
 }
 
 public protocol PositionEvaluator: AnyObject {
-    func evaluate(_ position: Position) -> PositionValue
+    func evaluate(_ position: Position) -> PositionEvaluation
 }
 
 public class PositionEvaluatorImpl: PositionEvaluator {
-    let staticValueCalculator: ValueCalculator
-    let possibleMoveGenerator: PossibleMoveGenerator
+    private let valueCalculator: ValueCalculator
+    private let possibleMoveGenerator: PossibleMoveGenerator
 
     public init(
-        staticValueCalculator: ValueCalculator = ValueCalculatorImpl(),
+        valueCalculator: ValueCalculator = ValueCalculatorImpl(),
         possibleMoveGenerator: PossibleMoveGenerator = PossibleMoveGeneratorImpl()
     ) {
-        self.staticValueCalculator = staticValueCalculator
+        self.valueCalculator = valueCalculator
         self.possibleMoveGenerator = possibleMoveGenerator
     }
 
-    public func evaluate(_ position: Position) -> PositionValue {
-        var kingsInCheck = Set<PieceColor>()
-        var kingsInCheckmate = Set<PieceColor>()
+    public func evaluate(_ position: Position) -> PositionEvaluation {
+        var isKingChecked = false
+        var isKingCheckedmated = false
 
-        for kingColor in [PieceColor.white, .black] {
-            if let kingCoordinate = position.kingCoordinate(kingColor) {
-                var attackersPosition = position
-                attackersPosition.turn = kingColor.opposite
-                let attackerMovesWithCheck = possibleMoveGenerator.generateAllMoves(attackersPosition, parentMoveId: nil)
-                    .filter { ($0 as? CaptureMove)?.to == kingCoordinate }
+        if let kingCoordinate = position.kingCoordinate(position.sideToMove) {
+            let attackersPosition = position.opposite
+            // Check all possible moves that directed on the king's square
+            // These are "attacks" on the king
+            let attackerMovesWithCheck = possibleMoveGenerator.generateAllMoves(attackersPosition)
+                .filter { ($0 as? CaptureMove)?.to == kingCoordinate }
 
-                if !attackerMovesWithCheck.isEmpty {
-                    kingsInCheck.insert(kingColor)
-                    logDebug("\(kingColor) king is in check!", category: .evaluator)
-                    var defendersPosition = position
-                    defendersPosition.turn = kingColor
-                    let defenderMoves = possibleMoveGenerator.generateAllMoves(defendersPosition, parentMoveId: nil)
-                    var stillInCheckCount = 0
-                    for defenderMove in defenderMoves {
-                        var positionAfterDefenderMove = defendersPosition.applied(move: defenderMove)
-                        positionAfterDefenderMove.turn = kingColor.opposite
-                        let sideToMoveKingCoordinateAfterDefenderMove = positionAfterDefenderMove.kingCoordinate(kingColor)
-                        let attackerMovesWithCheckAfterDefenderMove = possibleMoveGenerator.generateAllMoves(
-                            positionAfterDefenderMove,
-                            parentMoveId: nil
-                        )
+            if !attackerMovesWithCheck.isEmpty {
+                isKingChecked = true
+
+                let defenderMoves = possibleMoveGenerator.generateAllMoves(position)
+                var stillInCheckCount = 0
+                for defenderMove in defenderMoves {
+                    let positionAfterDefenderMove = position.applied(move: defenderMove)
+                    let sideToMoveKingCoordinateAfterDefenderMove = positionAfterDefenderMove.kingCoordinate(position.sideToMove)
+                    let attackerMovesWithCheckAfterDefenderMove = possibleMoveGenerator.generateAllMoves(positionAfterDefenderMove)
                         .filter { ($0 as? CaptureMove)?.to == sideToMoveKingCoordinateAfterDefenderMove }
 
-                        if !attackerMovesWithCheckAfterDefenderMove.isEmpty {
-                            stillInCheckCount += 1
-                        }
+                    if !attackerMovesWithCheckAfterDefenderMove.isEmpty {
+                        stillInCheckCount += 1
                     }
-                    if stillInCheckCount == defenderMoves.count {
-                        print("\(kingColor) king is in CHECKMATE!")
-                        kingsInCheckmate.insert(kingColor)
-                    }
+                }
+                if stillInCheckCount == defenderMoves.count {
+                    isKingCheckedmated = true
                 }
             }
         }
 
-        if kingsInCheck.count > 1 {
-            print("Invalid position: Both kings are in check!")
-            return .invalid(reason: "Invalid position: Both kings are in check!")
-        }
-        if let color = kingsInCheckmate.first {
-            return .kingCheckmated(color)
-        }
-        if let color = kingsInCheck.first {
-            return .kingChecked(color)
+        let values = valueCalculator.calculate(position)
+
+        if isKingCheckedmated {
+            return PositionEvaluation(state: .kingCheckmated, values: values)
         }
 
-        let advantage = staticValueCalculator.calculate(position)
-        return PositionValue.normal(advantage: advantage)
+        if isKingChecked {
+            return PositionEvaluation(state: .kingChecked, values: values)
+        }
+
+        return PositionEvaluation(state: .normal, values: values)
     }
 }

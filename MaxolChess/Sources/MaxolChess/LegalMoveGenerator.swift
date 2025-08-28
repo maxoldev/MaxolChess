@@ -23,7 +23,7 @@ public class LegalMoveGeneratorImpl: LegalMoveGenerator {
     }
 
     public func generateLegalMoves(_ position: Position, parentMoveId: MoveId?) -> [Move] {
-        let sideToMove = position.turn
+        let sideToMove = position.sideToMove
 
         var legalMoves = [Move]()
 
@@ -33,9 +33,12 @@ public class LegalMoveGeneratorImpl: LegalMoveGenerator {
                 let allMoves = possibleMoveGenerator.generateAllMoves(position, from: coordinate, parentMoveId: parentMoveId)
                 var possibleMoves = [Move]()
                 for move in allMoves {
-                    let posAfterMove = position.applied(move: move)
+                    var posAfterMove = position.applied(move: move)
+                    posAfterMove.sideToMove = sideToMove
+
                     let evaluation = positionEvaluator.evaluate(posAfterMove)
-                    if evaluation != .kingChecked(sideToMove) && evaluation != .kingCheckmated(sideToMove) {
+
+                    if evaluation.state != .kingChecked && evaluation.state != .kingCheckmated {
                         possibleMoves.append(move)
                     }
                 }

@@ -10,43 +10,46 @@ import Testing
 @testable import MaxolChess
 
 struct CheckmatesIn1MoveTest {
-    @Test func checkmatesIn1Move() async throws {
+    @Test func checkmateIn1Move1() async throws {
         let engine: Engine = EngineImpl(
-            gameState: GameState(ourSide: .black, position: Position(fen: "1KR4R/PPP5/5P2/4Q1P1/1p2p2P/2ppq3/3n1kp1/r7 b KQ - 0 1")!)
+            configuration: EngineConfiguration(returnFirstCheckmateMove: true),
+            gameState: GameState(position: Position(fen: "1KR4R/PPP5/5P2/4Q1P1/1p2p2P/2ppq3/3n1kp1/r7 b KQ - 0 1")!)
         )
         #expect(try #require(await engine.calculateOurBestMove() as? CaptureMove).to == "a7")
+    }
 
-        engine.setCurrentState(
-            GameState(
-                ourSide: .white,
-                position: Position(
-                    Board(
-                        prettyPrinted: """
-                              ┌───────────────┐
-                            8  ♜ . . ♛ ♚ ♝ ♞ ♜ 
-                            7  . . ♟ ♟ ♟ . ♟ ♟ 
-                            6  ♟ . . . . ♙ . . 
-                            5  . ♟ . . . . ♘ . 
-                            4  . . . . . . . . 
-                            3  . . ♙ . . . . . 
-                            2  ♙ ♙ . ♔ ♗ ♙ ♝ ♙ 
-                            1  ♖ ♘ ♗ ♕ . . . . 
-                              └───────────────┘
-                               a b c d e f g h 
-                            """
-                    )!,
-                    turn: .white
+    @Test func checkmateIn1Move2() async throws {
+        let engine: Engine = EngineImpl(
+            configuration: EngineConfiguration(returnFirstCheckmateMove: true),
+            gameState:
+                GameState(
+                    position: Position(
+                        Board(
+                            prettyPrinted: """
+                                  ┌───────────────┐
+                                8  ♜ . . ♛ ♚ ♝ ♞ ♜ 
+                                7  . . ♟ ♟ ♟ . ♟ ♟ 
+                                6  ♟ . . . . ♙ . . 
+                                5  . ♟ . . . . ♘ . 
+                                4  . . . . . . . . 
+                                3  . . ♙ . . . . . 
+                                2  ♙ ♙ . ♔ ♗ ♙ ♝ ♙ 
+                                1  ♖ ♘ ♗ ♕ . . . . 
+                                  └───────────────┘
+                                   a b c d e f g h 
+                                """
+                        )!,
+                        sideToMove: .white
+                    )
                 )
-            )
         )
         #expect(try #require(await engine.calculateOurBestMove() as? RepositionMove).to == "f7")
     }
 
-    @Test func checkmatesIn1Move2() async throws {
-        let engine: Engine = EngineImpl()
+    @Test func checkmateIn1Move3() async throws {
+        let engine: Engine = EngineImpl(configuration: EngineConfiguration(returnFirstCheckmateMove: true))
         engine.setCurrentState(
             GameState(
-                ourSide: .white,
                 position: Position(
                     Board(
                         prettyPrinted: """
@@ -63,7 +66,7 @@ struct CheckmatesIn1MoveTest {
                                a b c d e f g h 
                             """
                     )!,
-                    turn: .white
+                    sideToMove: .white
                 )
             )
         )

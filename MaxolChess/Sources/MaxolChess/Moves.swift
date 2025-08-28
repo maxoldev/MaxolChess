@@ -9,9 +9,10 @@ import Foundation
 
 public typealias MoveId = UUID
 
-public protocol Move {
+public protocol Move: Sendable {
     var id: MoveId { get }
     var parentMoveId: UUID? { get }
+    var piece: Piece { get }
 }
 
 public struct RepositionMove: Move {
@@ -38,18 +39,19 @@ public struct CaptureMove: Move {
     public let piece: Piece
     public let from: Coordinate
     public let to: Coordinate
-    public let capture: Piece
+    public let captured: Piece
 }
 
 extension CaptureMove: CustomStringConvertible {
     public var description: String {
-        "\(piece)x\(capture)\(from)-\(to)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
+        "\(piece)x\(captured)\(from)-\(to)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
     }
 }
 
 public struct CastlingMove: Move {
     public let id = UUID()
     public let parentMoveId: UUID?
+    public let piece: Piece
     public let side: CastlingSide
 }
 

@@ -27,7 +27,7 @@ public class PositionCheckerImpl: PositionChecker {
         for kingColor in [PieceColor.white, .black] {
             if let kingCoordinate = position.kingCoordinate(kingColor) {
                 var attackersPosition = position
-                attackersPosition.turn = kingColor.opposite
+                attackersPosition.sideToMove = kingColor.opposite
                 let attackerMovesWithCheck = possibleMoveGenerator.generateAllMoves(attackersPosition, parentMoveId: nil)
                     .filter { ($0 as? CaptureMove)?.to == kingCoordinate }
 
@@ -39,7 +39,6 @@ public class PositionCheckerImpl: PositionChecker {
         }
 
         if kingsInCheck.count > 1 {
-            print("Invalid position: Both kings are in check!")
             return .invalid2KingsInCheck
         }
         return .valid

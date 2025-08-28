@@ -5,7 +5,7 @@
 //  Created by Maksim Solovev on 15.08.2025.
 //
 
-public enum CastlingSide {
+public enum CastlingSide: Sendable {
     case kingSide
     case queenSide
 }
@@ -22,7 +22,7 @@ public struct Side {
     //    public var castlingRights: CastlingSide = .all
 }
 
-public struct Position {
+public struct Position: Sendable {
     public private(set) var board: Board {
         didSet {
             searchAndSetKingCoordinates()
@@ -33,15 +33,15 @@ public struct Position {
         block(&board)
     }
 
-    public var turn: PieceColor
+    public var sideToMove: PieceColor
     public private(set) var castlingRights: [PieceColor: Set<CastlingSide>] = [.white: [], .black: []]
     public private(set) var enPassantTargetCoordinate: Coordinate?
     public var halfMoveCountSinceLastCaptureOrPawnMove = 0
     public var fullMoveIndex = 0
 
-    public init(_ board: Board, turn: PieceColor) {
+    public init(_ board: Board, sideToMove: PieceColor) {
         self.board = board
-        self.turn = turn
+        self.sideToMove = sideToMove
         searchAndSetKingCoordinates()
     }
 
@@ -61,6 +61,8 @@ public struct Position {
     }
 
     public func applied(move: Move) -> Position {
+        precondition(move.piece.color == sideToMove)
+
         var newBoard = board
         var newPosition = self
 
@@ -80,6 +82,13 @@ public struct Position {
             fatalError("Not implemented: \(move)")
         }
         newPosition.board = newBoard
+        newPosition.sideToMove = sideToMove.opposite
+        return newPosition
+    }
+
+    public var opposite: Position {
+        var newPosition = self
+        newPosition.sideToMove = sideToMove.opposite
         return newPosition
     }
 }
@@ -90,12 +99,12 @@ extension Position: CustomStringConvertible {
     }
 
     public func prettyPrinted(unicode: Bool = Config.unicodePieceNotation) -> String {
-        "\(board.prettyPrinted(unicode: unicode))\n\(turn) to move"
+        "\(board.prettyPrinted(unicode: unicode))\n\(sideToMove) to move"
     }
 }
 
 extension Position {
-    nonisolated(unsafe) public static let start = Position(fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")!
+    public static let start = Position(fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")!
 }
 
 extension Position {
@@ -145,7 +154,7 @@ extension Position {
             return nil
         }
 
-        self.init(board, turn: sideToMove)
+        self.init(board, sideToMove: sideToMove)
 
         if fields[2].contains("K") {
             castlingRights[.white]?.insert(.kingSide)
@@ -191,6 +200,6 @@ extension Position {
         let enPassantString = enPassantTargetCoordinate.map(String.init) ?? "-"
         
         return
-            "\(board.fenString) \(turn.rawValue) \(castlingRightsString) \(enPassantString) \(halfMoveCountSinceLastCaptureOrPawnMove) \(fullMoveIndex)"
+            "\(board.fenString) \(sideToMove.rawValue) \(castlingRightsString) \(enPassantString) \(halfMoveCountSinceLastCaptureOrPawnMove) \(fullMoveIndex)"
     }
 }

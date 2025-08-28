@@ -18,7 +18,7 @@ print("uciok")
 print("readyok")
 
 let opponentColor = PieceColor.white
-let engine = EngineImpl(gameState: GameState(ourSide: opponentColor.opposite, position: Position.start))
+let engine = EngineImpl(configuration: EngineConfiguration(maxDepth: 3), gameState: GameState(position: Position.start))
 let possibleMoveGenerator = PossibleMoveGeneratorImpl()
 let positionEvaluator = PositionEvaluatorImpl()
 
@@ -49,7 +49,7 @@ while true {
         for move in allMoves {
             let posAfterMove = pos.applied(move: move)
             let evaluation = positionEvaluator.evaluate(posAfterMove)
-            if evaluation != .kingChecked(opponentColor) && evaluation != .kingCheckmated(opponentColor) {
+            if evaluation.state != .kingChecked && evaluation.state != .kingCheckmated {
                 possibleMoves.append(move)
             }
         }
@@ -63,7 +63,7 @@ while true {
 
         print("\nThinking...\n")
         let bestMove = await engine.calculateOurBestMove()
-        print("BEST FOUND MOVE:", bestMove)
+        print("BEST FOUND MOVE:", bestMove ?? "NO MOVE FOUND. GG")
         if let bestMove {
             engine.setOurMove(bestMove)
         }

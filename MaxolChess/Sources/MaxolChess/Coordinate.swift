@@ -5,7 +5,7 @@
 //  Created by Maksim Solovev on 16.08.2025.
 //
 
-public struct Coordinate: Equatable {
+public struct Coordinate: Equatable, Sendable {
     public var x: Int
     public var y: Int
 

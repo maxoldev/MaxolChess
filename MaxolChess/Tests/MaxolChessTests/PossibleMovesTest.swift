@@ -13,7 +13,7 @@ struct PossibleMovesTest {
     let moveGen = PossibleMoveGeneratorImpl()
 
     @Test func pawnMovesOnEmptyBoard() async throws {
-        var pos = Position(Board(pieces: (Piece(.white, .pawn), "e2")), turn: .white)
+        var pos = Position(Board(pieces: (Piece(.white, .pawn), "e2")), sideToMove: .white)
         var moves = moveGen.generateAllMoves(pos, parentMoveId: nil)
         #expect(moves.count == 2)
         #expect((moves[0] as? RepositionMove)?.from == "e2")
@@ -21,7 +21,7 @@ struct PossibleMovesTest {
         #expect((moves[1] as? RepositionMove)?.from == "e2")
         #expect((moves[1] as? RepositionMove)?.to == "e4")
 
-        pos = Position(Board(pieces: (Piece(.black, .pawn), "e7")), turn: .black)
+        pos = Position(Board(pieces: (Piece(.black, .pawn), "e7")), sideToMove: .black)
         moves = moveGen.generateAllMoves(pos, parentMoveId: nil)
         #expect(moves.count == 2)
         #expect((moves[0] as? RepositionMove)?.from == "e7")
@@ -29,13 +29,13 @@ struct PossibleMovesTest {
         #expect((moves[1] as? RepositionMove)?.from == "e7")
         #expect((moves[1] as? RepositionMove)?.to == "e5")
 
-        pos = Position(Board(pieces: (Piece(.white, .pawn), "e3")), turn: .white)
+        pos = Position(Board(pieces: (Piece(.white, .pawn), "e3")), sideToMove: .white)
         moves = moveGen.generateAllMoves(pos, parentMoveId: nil)
         #expect(moves.count == 1)
         #expect((moves[0] as? RepositionMove)?.from == "e3")
         #expect((moves[0] as? RepositionMove)?.to == "e4")
 
-        pos = Position(Board(pieces: (Piece(.white, .pawn), "e4")), turn: .white)
+        pos = Position(Board(pieces: (Piece(.white, .pawn), "e4")), sideToMove: .white)
         moves = moveGen.generateAllMoves(pos, parentMoveId: nil)
         #expect(moves.count == 1)
         #expect((moves[0] as? RepositionMove)?.from == "e4")
@@ -43,7 +43,7 @@ struct PossibleMovesTest {
     }
 
     @Test func knightMovesOnEmptyBoard() async throws {
-        let pos = Position(Board(pieces: (Piece(.white, .knight), "e5")), turn: .white)
+        let pos = Position(Board(pieces: (Piece(.white, .knight), "e5")), sideToMove: .white)
         let moves = moveGen.generateAllMoves(pos, parentMoveId: nil)
 
         #expect(moves.count == 8)
@@ -58,7 +58,7 @@ struct PossibleMovesTest {
     }
 
     @Test func bishopMovesOnEmptyBoard() async throws {
-        let pos = Position(Board(pieces: (Piece(.white, .bishop), "e5")), turn: .white)
+        let pos = Position(Board(pieces: (Piece(.white, .bishop), "e5")), sideToMove: .white)
         let moves = moveGen.generateAllMoves(pos, parentMoveId: nil)
 
         #expect(moves.count == 13)
@@ -73,7 +73,7 @@ struct PossibleMovesTest {
     }
 
     @Test func rookMovesOnEmptyBoard() async throws {
-        let pos = Position(Board(pieces: (Piece(.white, .rook), "e5")), turn: .white)
+        let pos = Position(Board(pieces: (Piece(.white, .rook), "e5")), sideToMove: .white)
         let moves = moveGen.generateAllMoves(pos, parentMoveId: nil)
 
         #expect(moves.count == 14)
@@ -84,7 +84,7 @@ struct PossibleMovesTest {
     }
 
     @Test func queenMovesOnEmptyBoard() async throws {
-        let pos = Position(Board(pieces: (Piece(.white, .queen), "e5")), turn: .white)
+        let pos = Position(Board(pieces: (Piece(.white, .queen), "e5")), sideToMove: .white)
         let moves = moveGen.generateAllMoves(pos, parentMoveId: nil)
 
         #expect(moves.count == 27)
@@ -95,7 +95,7 @@ struct PossibleMovesTest {
     }
 
     @Test func kingMovesOnEmptyBoard() async throws {
-        let pos = Position(Board(pieces: (Piece(.white, .king), "e5")), turn: .white)
+        let pos = Position(Board(pieces: (Piece(.white, .king), "e5")), sideToMove: .white)
         let moves = moveGen.generateAllMoves(pos, parentMoveId: nil)
 
         #expect(moves.count == 8)

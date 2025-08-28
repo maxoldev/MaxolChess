@@ -12,7 +12,7 @@ import Testing
 struct CheckmatesTest {
     @Test func checkmates() async throws {
         let positionEval = PositionEvaluatorImpl()
-        let val = positionEval.evaluate(
+        let evaluation = positionEval.evaluate(
             Position(
                 Board(
                     prettyPrinted: """
@@ -29,9 +29,9 @@ struct CheckmatesTest {
                            a b c d e f g h
                         """
                 )!,
-                turn: .black
+                sideToMove: .white
             )
         )
-        #expect(val == .kingCheckmated(.white))
+        #expect(evaluation.state == .kingCheckmated)
     }
 }

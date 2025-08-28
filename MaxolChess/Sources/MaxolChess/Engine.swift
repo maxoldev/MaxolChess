@@ -6,12 +6,10 @@
 //
 
 public struct GameState {
-    public var ourSide: PieceColor
     public var position: Position
     public var playedMoves: [Move] = []
 
-    public init(ourSide: PieceColor, position: Position, previousMoves: [Move] = []) {
-        self.ourSide = ourSide
+    public init(position: Position, previousMoves: [Move] = []) {
         self.position = position
         self.playedMoves = previousMoves
     }
@@ -19,15 +17,20 @@ public struct GameState {
 
 public enum AnalisysLimit {
     /// Seconds
-    case time(Double)
+    //case time(Double)
     /// In 2 halfmoves
     case depth(Int)
 }
 
 public struct EngineConfiguration {
-    public var analisysLimit: AnalisysLimit = .depth(2)
+    //    public var analisysLimit: AnalisysLimit = .depth(2)
+    /// In halfmoves
+    public let maxDepth: Int
+    public let returnFirstCheckmateMove: Bool
 
-    public init() {
+    public init(maxDepth: Int = 2, returnFirstCheckmateMove: Bool = false) {
+        self.maxDepth = maxDepth
+        self.returnFirstCheckmateMove = returnFirstCheckmateMove
     }
 }
 
@@ -56,7 +59,7 @@ public class EngineImpl: Engine {
         valueCalculator: ValueCalculator = ValueCalculatorImpl(),
         positionEvaluator: PositionEvaluator = PositionEvaluatorImpl(),
         legalMoveGenerator: LegalMoveGenerator = LegalMoveGeneratorImpl(),
-        gameState: GameState = GameState(ourSide: .white, position: Position.start)
+        gameState: GameState = GameState(position: Position.start)
     ) {
         self.configuration = configuration
         self.valueCalculator = valueCalculator
@@ -78,69 +81,21 @@ public class EngineImpl: Engine {
         logDebug(currentState.position, category: .engine)
         let bench = Benchmark()
 
-        let moves = legalMoveGenerator.generateLegalMoves(currentState.position, parentMoveId: nil)
-        var movesToConsider: [Move] = []
-        var invalidResultMovesCount = 0
-
-        for move in moves {
-            let newPosition = currentState.position.applied(move: move)
-            let result = positionEvaluator.evaluate(newPosition)
-
-            switch result {
-            case let .kingCheckmated(side):
-                if side == currentState.ourSide {
-                    continue
-                } else {
-                    logDebug("BEST MOVE: \(move) \(bench.checkpoint())", category: .engine)
-                    return move
-                }
-
-            case let .kingChecked(side):
-                if side == currentState.ourSide {
-                    continue
-                } else {
-                    movesToConsider.append(move)
-                }
-
-            case .draw:
-                fallthrough
-            case .kingStalemated(_):
-                fallthrough
-            case .normal(_):
-                movesToConsider.append(move)
-
-            case let .invalid(reason):
-                print(reason)
-                print(newPosition)
-                invalidResultMovesCount += 1
-            }
-        }
-
-        if invalidResultMovesCount == moves.count {
-            logDebug("NO VALID MOVES🚫 \(bench.checkpoint())", category: .engine)
-            return nil
-        }
-
         await moveResultRepo.clear()
 
-        for move in movesToConsider {
-            await analyze(move: move, positionBeforeMove: currentState.position)
-        }
+        await analyze(position: currentState.position, parentMoveId: nil, currentDepth: 0)
 
-        let bestMoveId = await moveResultRepo.bestMoveId(for: currentState.ourSide)
-        let bestMove = movesToConsider.first(where: { $0.id == bestMoveId })
+        let bestMove = await moveResultRepo.bestMove()
         logDebug("BEST MOVE:", bestMove, bench.checkpoint(), category: .engine)
         return bestMove
     }
-    
+
     public func setOurMove(_ move: Move) {
         apply(move: move)
-        currentState.position.turn = currentState.ourSide.opposite
     }
 
     public func setOpponentsMove(_ move: Move) {
         apply(move: move)
-        currentState.position.turn = currentState.ourSide
     }
 
     public func updateConfiguration(_ configuration: EngineConfiguration) {
@@ -149,47 +104,109 @@ public class EngineImpl: Engine {
 
     // MARK: - Private
     private func apply(move: Move) {
-        let positionAfterMove = currentState.position.applied(move: move)
-        currentState.position = positionAfterMove
+        currentState.position = currentState.position.applied(move: move)
         currentState.playedMoves.append(move)
     }
 
-    private func analyze(move: Move, positionBeforeMove: Position) async {
-        var newPosition = positionBeforeMove.applied(move: move)
-        newPosition.turn = currentState.ourSide.opposite
-        let opponentMoves = legalMoveGenerator.generateLegalMoves(newPosition, parentMoveId: move.id)
+    private func analyze(position: Position, parentMoveId: MoveId?, currentDepth: Int) async {
+        if currentDepth > configuration.maxDepth {
+            return
+        }
 
-        for opponentMove in opponentMoves {
+        logDebug("Analysis... Depth = \(currentDepth) halfmoves")
+//        logDebug(position)
+
+        let sideToMove = position.sideToMove
+        let moves = legalMoveGenerator.generateLegalMoves(position, parentMoveId: parentMoveId)
+
+        var movesToAnalyzeFurther = [(move: Move, posAfterMove: Position)]()
+
+        for move in moves {
             await Task.yield()
 
-            let posAfterOpponentMove = newPosition.applied(move: opponentMove)
-            let result = positionEvaluator.evaluate(posAfterOpponentMove)
+            if parentMoveId == nil {
+                await moveResultRepo.add(move: move)
+            }
 
-            switch result {
-            case let .kingCheckmated(side):
-                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: side == .white ? -1000 : 1000)
-                await moveResultRepo.moveResultReceived(result)
+            let posAfterMove = position.applied(move: move)
+            let evaluation = positionEvaluator.evaluate(posAfterMove)
+            let gain = (move as? CaptureMove)?.captured.type.defaultValue ?? 0
 
-            case let .kingChecked(side):
-                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: side == .white ? -100 : 100)
-                await moveResultRepo.moveResultReceived(result)
+            switch evaluation.state {
+            case .kingCheckmated:
+                let result = MoveResult(
+                    side: sideToMove,
+                    move: move,
+                    depth: currentDepth,
+                    gain: gain,
+                    isEnemyKingChecked: true,
+                    isEnemyKingCheckmated: true,
+                    isEnemyKingStalemated: false,
+                    isDraw: false
+                )
+                await moveResultRepo.add(moveResult: result)
+                if configuration.returnFirstCheckmateMove && currentDepth == 0 {
+                    return
+                }
+
+            case .kingChecked:
+                let result = MoveResult(
+                    side: sideToMove,
+                    move: move,
+                    depth: currentDepth,
+                    gain: gain,
+                    isEnemyKingChecked: true,
+                    isEnemyKingCheckmated: false,
+                    isEnemyKingStalemated: false,
+                    isDraw: false
+                )
+                await moveResultRepo.add(moveResult: result)
+                movesToAnalyzeFurther.append((move, posAfterMove))
+
+            case .kingStalemated:
+                let result = MoveResult(
+                    side: sideToMove,
+                    move: move,
+                    depth: currentDepth,
+                    gain: gain,
+                    isEnemyKingChecked: false,
+                    isEnemyKingCheckmated: false,
+                    isEnemyKingStalemated: true,
+                    isDraw: true
+                )
+                await moveResultRepo.add(moveResult: result)
 
             case .draw:
-                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: 0)
-                await moveResultRepo.moveResultReceived(result)
+                let result = MoveResult(
+                    side: sideToMove,
+                    move: move,
+                    depth: currentDepth,
+                    gain: gain,
+                    isEnemyKingChecked: false,
+                    isEnemyKingCheckmated: false,
+                    isEnemyKingStalemated: false,
+                    isDraw: true
+                )
+                await moveResultRepo.add(moveResult: result)
 
-            case let .kingStalemated(side):
-                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: 0)
-                await moveResultRepo.moveResultReceived(result)
-
-            case let .invalid(reason):
-                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: currentState.ourSide == .white ? 1000 : -1000)
-                await moveResultRepo.moveResultReceived(result)
-
-            case let .normal(advantage):
-                let result = MoveResult(moveId: move.id, parentMoveId: move.parentMoveId, depth: 0, advantage: advantage)
-                await moveResultRepo.moveResultReceived(result)
+            case .normal:
+                let result = MoveResult(
+                    side: sideToMove,
+                    move: move,
+                    depth: currentDepth,
+                    gain: gain,
+                    isEnemyKingChecked: false,
+                    isEnemyKingCheckmated: false,
+                    isEnemyKingStalemated: false,
+                    isDraw: false
+                )
+                await moveResultRepo.add(moveResult: result)
+                movesToAnalyzeFurther.append((move, posAfterMove))
             }
+        }
+
+        for (move, posAfterMove) in movesToAnalyzeFurther {
+            await analyze(position: posAfterMove, parentMoveId: move.id, currentDepth: currentDepth + 1)
         }
     }
 }

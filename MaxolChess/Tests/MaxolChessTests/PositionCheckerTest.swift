@@ -32,7 +32,8 @@ struct PositionCheckerTest {
                               └───────────────┘
                                a b c d e f g h
                             """
-                    )!, turn: .white
+                    )!,
+                    sideToMove: .white
                 )
             ) == .invalid2KingsInCheck
         )
