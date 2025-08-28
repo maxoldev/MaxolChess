@@ -120,3 +120,14 @@ extension Piece: CustomStringConvertible {
         }
     }
 }
+
+extension Piece: ExpressibleByUnicodeScalarLiteral {
+    public typealias UnicodeScalarLiteralType = Unicode.Scalar
+
+    public init(unicodeScalarLiteral value: Unicode.Scalar) {
+        guard let piece = Piece(Character(value)) else {
+            fatalError("Invalid piece literal: \(value)")
+        }
+        self = piece
+    }
+}
