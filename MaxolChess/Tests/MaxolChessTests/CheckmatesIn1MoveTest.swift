@@ -15,7 +15,7 @@ struct CheckmatesIn1MoveTest {
             configuration: EngineConfiguration(returnFirstCheckmateMove: true),
             gameState: GameState(position: Position(fen: "1KR4R/PPP5/5P2/4Q1P1/1p2p2P/2ppq3/3n1kp1/r7 b KQ - 0 1")!)
         )
-        #expect(try #require(await engine.calculateOurBestMove() as? CaptureMove).to == "a7")
+        #expect(try #require(await engine.calculateBestMove() as? CaptureMove).to == "a7")
     }
 
     @Test func checkmateIn1Move2() async throws {
@@ -43,7 +43,7 @@ struct CheckmatesIn1MoveTest {
                     )
                 )
         )
-        #expect(try #require(await engine.calculateOurBestMove() as? RepositionMove).to == "f7")
+        #expect(try #require(await engine.calculateBestMove() as? RepositionMove).to == "f7")
     }
 
     @Test func checkmateIn1Move3() async throws {
@@ -70,7 +70,7 @@ struct CheckmatesIn1MoveTest {
                 )
             )
         )
-        let move = try #require(await engine.calculateOurBestMove() as? RepositionMove)
+        let move = try #require(await engine.calculateBestMove() as? RepositionMove)
         #expect(move.isEqual(to: RepositionMove(parentMoveId: nil, piece: Piece(.white, .rook), from: "g8", to: "g5")))
     }
 }

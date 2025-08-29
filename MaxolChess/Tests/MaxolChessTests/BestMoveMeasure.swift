@@ -18,7 +18,7 @@ final class BestMoveMeasure: XCTestCase {
                     configuration: EngineConfiguration(maxDepth: 3),
                     gameState: GameState(position: Position.start)
                 )
-                _ = await engine.calculateOurBestMove()
+                _ = await engine.calculateBestMove()
                 expectation.fulfill()
             }
             wait(for: [expectation], timeout: 100.0)

@@ -38,9 +38,8 @@ public protocol Engine {
     func getCurrentState() -> GameState
     func setCurrentState(_ state: GameState)
 
-    func calculateOurBestMove() async -> Move?
-    func setOurMove(_ move: Move)
-    func setOpponentsMove(_ move: Move)
+    func calculateBestMove() async -> Move?
+    func setMove(_ move: Move)
 
     func updateConfiguration(_ configuration: EngineConfiguration)
 }
@@ -77,24 +76,20 @@ public class EngineImpl: Engine {
         currentState = state
     }
 
-    public func calculateOurBestMove() async -> Move? {
+    public func calculateBestMove() async -> Move? {
         logDebug(currentState.position, category: .engine)
         let bench = Benchmark()
 
         await moveResultRepo.clear()
 
-        await analyze(position: currentState.position, parentMoveId: nil, currentDepth: 0)
+        await Self.analyze(position: currentState.position, parentMoveId: nil, currentDepth: 0, maxDepth: configuration.maxDepth, moveResultRepo: moveResultRepo)
 
         let bestMove = await moveResultRepo.bestMove()
         logDebug("BEST MOVE:", bestMove, bench.checkpoint(), category: .engine)
         return bestMove
     }
 
-    public func setOurMove(_ move: Move) {
-        apply(move: move)
-    }
-
-    public func setOpponentsMove(_ move: Move) {
+    public func setMove(_ move: Move) {
         apply(move: move)
     }
 
@@ -108,15 +103,17 @@ public class EngineImpl: Engine {
         currentState.playedMoves.append(move)
     }
 
-    private func analyze(position: Position, parentMoveId: MoveId?, currentDepth: Int) async {
-        if currentDepth > configuration.maxDepth {
+    private static func analyze(position: Position, parentMoveId: MoveId?, currentDepth: Int, maxDepth: Int, moveResultRepo: MoveResultRepo) async {
+        if currentDepth >= maxDepth {
             return
         }
 
-        logDebug("Analysis... Depth = \(currentDepth) halfmoves")
+        logDebug("Analysis... Depth = \(currentDepth + 1) halfmoves")
 //        logDebug(position)
 
         let sideToMove = position.sideToMove
+        let legalMoveGenerator = LegalMoveGeneratorImpl()
+        let positionEvaluator = PositionEvaluatorImpl()
         let moves = legalMoveGenerator.generateLegalMoves(position, parentMoveId: parentMoveId)
 
         var movesToAnalyzeFurther = [(move: Move, posAfterMove: Position)]()
@@ -129,8 +126,9 @@ public class EngineImpl: Engine {
             }
 
             let posAfterMove = position.applied(move: move)
-            let evaluation = positionEvaluator.evaluate(posAfterMove)
             let gain = (move as? CaptureMove)?.captured.type.defaultValue ?? 0
+
+            let evaluation = positionEvaluator.evaluate(posAfterMove)
 
             switch evaluation.state {
             case .kingCheckmated:
@@ -145,7 +143,7 @@ public class EngineImpl: Engine {
                     isDraw: false
                 )
                 await moveResultRepo.add(moveResult: result)
-                if configuration.returnFirstCheckmateMove && currentDepth == 0 {
+                if /*configuration.returnFirstCheckmateMove*/ true && currentDepth == 0 {
                     return
                 }
 
@@ -205,8 +203,12 @@ public class EngineImpl: Engine {
             }
         }
 
-        for (move, posAfterMove) in movesToAnalyzeFurther {
-            await analyze(position: posAfterMove, parentMoveId: move.id, currentDepth: currentDepth + 1)
+        await withTaskGroup { group in
+            for (move, posAfterMove) in movesToAnalyzeFurther {
+                group.addTask {
+                    await analyze(position: posAfterMove, parentMoveId: move.id, currentDepth: currentDepth + 1, maxDepth: maxDepth, moveResultRepo: moveResultRepo)
+                }
+            }
         }
     }
 }

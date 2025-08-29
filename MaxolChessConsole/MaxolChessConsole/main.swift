@@ -58,14 +58,14 @@ while true {
             continue
         }
         print("Opponent's move: \(opponentMove)")
-        engine.setOpponentsMove(opponentMove)
+        engine.setMove(opponentMove)
         print("Position after opponent's move:", engine.getCurrentState().position)
 
         print("\nThinking...\n")
-        let bestMove = await engine.calculateOurBestMove()
+        let bestMove = await engine.calculateBestMove()
         print("BEST FOUND MOVE:", bestMove ?? "NO MOVE FOUND. GG")
         if let bestMove {
-            engine.setOurMove(bestMove)
+            engine.setMove(bestMove)
         }
     } else {
         print("exit")

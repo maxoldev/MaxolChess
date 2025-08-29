@@ -18,7 +18,7 @@ struct EngineTest {
         let engine: Engine = EngineImpl(
             gameState: GameState(position: pos)
         )
-        let move = await engine.calculateOurBestMove()
+        let move = await engine.calculateBestMove()
         logConsoleMarked(move)
     }
 
@@ -26,12 +26,12 @@ struct EngineTest {
         let engine: Engine = EngineImpl(
             gameState: GameState(position: Position.start)
         )
-        var move = await engine.calculateOurBestMove()
-        engine.setOurMove(move!)
-        engine.setOpponentsMove(RepositionMove(parentMoveId: nil, piece: Piece(.black, .pawn), from: "e7", to: "e6"))
-        move = await engine.calculateOurBestMove()
-        engine.setOurMove(move!)
-        engine.setOpponentsMove(RepositionMove(parentMoveId: nil, piece: Piece(.black, .pawn), from: "e6", to: "e5"))
-        move = await engine.calculateOurBestMove()
+        var move = await engine.calculateBestMove()
+        engine.setMove(move!)
+        engine.setMove(RepositionMove(parentMoveId: nil, piece: Piece(.black, .pawn), from: "e7", to: "e6"))
+        move = await engine.calculateBestMove()
+        engine.setMove(move!)
+        engine.setMove(RepositionMove(parentMoveId: nil, piece: Piece(.black, .pawn), from: "e6", to: "e5"))
+        move = await engine.calculateBestMove()
     }
 }

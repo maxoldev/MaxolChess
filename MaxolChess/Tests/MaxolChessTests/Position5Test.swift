@@ -48,7 +48,7 @@ final class Position5Test: XCTestCase {
                     configuration: EngineConfiguration(maxDepth: 1),
                     gameState: GameState(position: pos)
                 )
-                let move = await engine.calculateOurBestMove()
+                let move = await engine.calculateBestMove()
                 logConsoleMarked(move)
                 expectation.fulfill()
             }
@@ -57,20 +57,54 @@ final class Position5Test: XCTestCase {
     }
 
     func testBestMoveDepth2() {
-        let options = XCTMeasureOptions()
-        options.iterationCount = 2
-        measure(options: options) {
+        measure {
             let expectation = XCTestExpectation()
             Task {
                 let engine: Engine = EngineImpl(
                     configuration: EngineConfiguration(maxDepth: 2),
                     gameState: GameState(position: pos)
                 )
-                let move = await engine.calculateOurBestMove()
+                let move = await engine.calculateBestMove()
                 logConsoleMarked(move)
                 expectation.fulfill()
             }
             wait(for: [expectation], timeout: 100)
         }
     }
+
+    func testBestMoveDepth3() {
+        let options = XCTMeasureOptions()
+        options.iterationCount = 4
+        measure(options: options) {
+            let expectation = XCTestExpectation()
+            Task {
+                let engine: Engine = EngineImpl(
+                    configuration: EngineConfiguration(maxDepth: 3),
+                    gameState: GameState(position: pos)
+                )
+                let move = await engine.calculateBestMove()
+                logConsoleMarked(move)
+                expectation.fulfill()
+            }
+            wait(for: [expectation], timeout: 100)
+        }
+    }
+
+//    func testBestMoveDepth4() {
+//        let options = XCTMeasureOptions()
+//        options.iterationCount = 2
+//        measure(options: options) {
+//            let expectation = XCTestExpectation()
+//            Task {
+//                let engine: Engine = EngineImpl(
+//                    configuration: EngineConfiguration(maxDepth: 4),
+//                    gameState: GameState(position: pos)
+//                )
+//                let move = await engine.calculateOurBestMove()
+//                logConsoleMarked(move)
+//                expectation.fulfill()
+//            }
+//            wait(for: [expectation], timeout: 1000)
+//        }
+//    }
 }
