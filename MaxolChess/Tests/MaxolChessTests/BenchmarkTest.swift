@@ -97,7 +97,7 @@ final class BenchmarkTest: XCTestCase {
                 _ = await engine.calculateBestMove()
                 expectation.fulfill()
             }
-            wait(for: [expectation], timeout: 10000)
+            wait(for: [expectation], timeout: 300)
         }
     }
 }

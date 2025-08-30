@@ -25,6 +25,9 @@
             "name" : "CheckmatesTest"
           },
           {
+            "name" : "CoordinateTest"
+          },
+          {
             "name" : "EngineTest"
           },
           {
@@ -46,6 +49,9 @@
             "name" : "PositionEvaluatorTest"
           },
           {
+            "name" : "PositionTest"
+          },
+          {
             "name" : "PossibleMovesTest"
           },
           {
@@ -53,6 +59,12 @@
           }
         ],
         "xctestClasses" : [
+          {
+            "name" : "BenchmarkTest",
+            "xctestMethods" : [
+              "testBestMoveDepth4()"
+            ]
+          },
           {
             "name" : "BestMoveMeasure"
           }

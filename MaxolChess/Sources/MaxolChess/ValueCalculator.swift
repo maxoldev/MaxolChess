@@ -31,7 +31,7 @@ public class ValueCalculatorImpl: ValueCalculator {
         var whiteValue: PieceValue = 0.0
         var blackValue: PieceValue = 0.0
 
-        for i in 0..<Const.baseBoardSquareCount {
+        for i in 0..<Const.boardSquareCount {
             let coordinate = Coordinate(i)
             if let piece = position.board[coordinate] {
                 if piece.color == .white {
@@ -49,7 +49,7 @@ public class ValueCalculatorImpl: ValueCalculator {
         var whiteValue: PieceValue = 0.0
         var blackValue: PieceValue = 0.0
 
-        for i in 0..<Const.baseBoardSquareCount {
+        for i in 0..<Const.boardSquareCount {
             let coordinate = Coordinate(i)
             if let piece = position.board[coordinate] {
                 if piece.color == .white {

@@ -11,7 +11,7 @@ public typealias MoveId = UUID
 
 public protocol Move: Sendable {
     var id: MoveId { get }
-    var parentMoveId: UUID? { get }
+    var parentMoveId: MoveId? { get }
     var piece: Piece { get }
 }
 
@@ -34,8 +34,8 @@ extension RepositionMove: CustomStringConvertible {
 }
 
 public struct CaptureMove: Move {
-    public let id = UUID()
-    public let parentMoveId: UUID?
+    public let id = MoveId()
+    public let parentMoveId: MoveId?
     public let piece: Piece
     public let from: Coordinate
     public let to: Coordinate
@@ -49,8 +49,8 @@ extension CaptureMove: CustomStringConvertible {
 }
 
 public struct CastlingMove: Move {
-    public let id = UUID()
-    public let parentMoveId: UUID?
+    public let id = MoveId()
+    public let parentMoveId: MoveId?
     public let piece: Piece
     public let side: CastlingSide
 }
@@ -62,17 +62,17 @@ extension CastlingMove: CustomStringConvertible {
 }
 
 public struct PromotionMove: Move {
-    public let id = UUID()
-    public let parentMoveId: UUID?
+    public let id = MoveId()
+    public let parentMoveId: MoveId?
     public let piece: Piece
     public let from: Coordinate
     public let to: Coordinate
-    public let promotedPiece: Piece
+    public let newPiece: Piece
     public let capture: Piece?
 }
 
 extension PromotionMove: CustomStringConvertible {
     public var description: String {
-        "\(piece)\(capture.map { "x"+$0.description } ?? "")→\(promotedPiece) \(from)-\(to)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
+        "\(piece)\(capture.map { "x"+$0.description } ?? "")→\(newPiece) \(from)-\(to)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
     }
 }

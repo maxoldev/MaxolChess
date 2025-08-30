@@ -52,7 +52,7 @@ public struct Position: Sendable {
     }
 
     private mutating func searchAndSetKingCoordinates() {
-        for i in 0..<Const.baseBoardSquareCount {
+        for i in 0..<Const.boardSquareCount {
             let coordinate = Coordinate(i)
             if let piece = board[coordinate], piece.type == .king {
                 kingCoordinatesDict[piece.color] = coordinate

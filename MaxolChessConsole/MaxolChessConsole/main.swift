@@ -35,8 +35,15 @@ while true {
 
         let fromStr = String(input.prefix(2))
         let toStr = String(input.suffix(2))
-        let from = Coordinate(fromStr)
-        let to = Coordinate(toStr)
+        guard let from = Coordinate(fromStr) else {
+            print("Invalid coordinate from \(fromStr)")
+            continue
+        }
+
+        guard let to = Coordinate(toStr) else {
+            print("Invalid coordinate to \(toStr)")
+            continue
+        }
 
         let pos = engine.getCurrentState().position
         guard let piece = pos.board[from], piece.color == opponentColor else {

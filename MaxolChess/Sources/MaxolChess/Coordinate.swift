@@ -5,6 +5,9 @@
 //  Created by Maksim Solovev on 16.08.2025.
 //
 
+public typealias File = String
+public typealias Rank = Int
+
 public struct Coordinate: Equatable, Sendable {
     public var x: Int
     public var y: Int
@@ -15,54 +18,42 @@ public struct Coordinate: Equatable, Sendable {
     }
 
     public init(_ index: Int) {
-        self.init(index % Const.baseBoardSize, index / Const.baseBoardSize)
+        self.init(index % Const.boardSize, index / Const.boardSize)
     }
 
     public var index: Int {
-        x + y * Const.baseBoardSize
+        x + y * Const.boardSize
     }
 
-    public var file: File {
-        get {
-            return String(UnicodeScalar(97 + x)!)
-        }
-        set {
-            x = Int(newValue.unicodeScalars.first!.value) - 97
-        }
-    }
-
-    public var rank: Rank {
-        get {
-            return y
-        }
-        set {
-            y = newValue
-        }
-    }
-
-    public init(_ string: String) {
-        precondition(
-            string.count == 2,
-            "Coordinates must be two characters long (e.g. 'e2')"
-        )
+    /// "a1", "e4", etc.
+    public init?(_ string: String) {
         let string = string.lowercased()
-        let fileIndex = Int(string.unicodeScalars.first!.value - 97)
-        let rankIndex = Int(string.unicodeScalars.last!.value - 49)
-        x = fileIndex
-        y = rankIndex
-    }
+        
+        guard string.count == 2,
+            let firstScalar = string.unicodeScalars.first?.value,
+            let secondScalar = string.unicodeScalars.last?.value
+        else {
+            return nil
+        }
 
-    /// - Returns: nil if advanced coordinate is invalid for the current board
-    public func advancedBy(_ xOffset: Int, _ yOffset: Int) -> Self? {
-        if Self.isValid(x + xOffset, y + yOffset) {
-            return Coordinate(x + xOffset, y + yOffset)
+        let fileIndex = Int(firstScalar) - 97  // starting from 'a'
+        let rankIndex = Int(secondScalar) - 49  // starting from '1'
+        let coord = Coordinate(fileIndex, rankIndex)
+        if coord.isValid {
+            self = coord
         } else {
             return nil
         }
     }
 
-    public static func isValid(_ x: Int, _ y: Int) -> Bool {
-        x >= 0 && x < Const.baseBoardSize && y >= 0 && y < Const.baseBoardSize
+    /// - Returns: nil if advanced coordinate is invalid for the current board
+    public func advancedBy(_ xOffset: Int, _ yOffset: Int) -> Self? {
+        let newCoord = Coordinate(x + xOffset, y + yOffset)
+        return newCoord.isValid ? newCoord : nil
+    }
+
+    public var isValid: Bool {
+        x >= 0 && x < Const.boardSize && y >= 0 && y < Const.boardSize
     }
 
     public func within1SquareOf(_ other: Coordinate) -> Bool {
@@ -78,17 +69,14 @@ extension Coordinate: CustomStringConvertible {
 
 extension Coordinate: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
-        self.init(value)
+        self.init(value)!
     }
 
     public init(extendedGraphemeClusterLiteral value: String) {
-        self.init(value)
+        self.init(value)!
     }
 
     public init(unicodeScalarLiteral value: String) {
-        self.init(value)
+        self.init(value)!
     }
 }
-
-public typealias File = String
-public typealias Rank = Int

@@ -6,8 +6,8 @@
 //
 
 public enum Const {
-    public static let baseBoardSize = 8
-    public static let baseBoardSquareCount = baseBoardSize * baseBoardSize
+    public static let boardSize = 8
+    public static let boardSquareCount = boardSize * boardSize
     public static let boardCoordinateCoefficients: [PieceValue] = [
     // ┌──────────────────────────────────────────────────────┐
         -0.5,  -0.4,  -0.4,  -0.4,  -0.4,  -0.4,  -0.4,  -0.5,

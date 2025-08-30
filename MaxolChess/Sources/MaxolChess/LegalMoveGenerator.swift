@@ -22,10 +22,9 @@ public class LegalMoveGeneratorImpl: LegalMoveGenerator {
 
         var legalMoves = [Move]()
 
-        for i in 0..<Const.baseBoardSquareCount {
-            let coordinate = Coordinate(i)
-            if let piece = position.board[coordinate], piece.color == sideToMove {
-                let allPieceMoves = possibleMoveGenerator.generateAllMoves(position, from: coordinate, parentMoveId: parentMoveId)
+        for i in 0..<Const.boardSquareCount {
+            if let piece = position.board[i], piece.color == sideToMove {
+                let allPieceMoves = possibleMoveGenerator.generateAllMoves(position, from: Coordinate(i), parentMoveId: parentMoveId)
                 var legalPieceMoves = [Move]()
                 for move in allPieceMoves {
                     var posAfterMove = position.applied(move: move)

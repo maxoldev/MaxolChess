@@ -11,64 +11,36 @@ public typealias Square = Piece?
 public struct Board: Equatable, Sendable {
     private var squares: [Square]
 
-    public init(squares: [Square] = Array(repeating: nil, count: Const.baseBoardSize * Const.baseBoardSize)) {
+    public init(squares: [Square] = Array(repeating: nil, count: Const.boardSize * Const.boardSize)) {
         self.squares = squares
     }
 
-    public init(pieces: (piece: Piece, coordinate: Coordinate)...) {
+    public init?(pieces: (piece: Piece, coordinate: Coordinate)...) {
         self.init()
 
         for (piece, coordinate) in pieces {
+            if !coordinate.isValid {
+                return nil
+            }
             self[coordinate] = piece
         }
     }
 
     public subscript(_ coordinate: Coordinate) -> Square {
         get {
-            return self[coordinate.x, coordinate.y]
+            return self.squares[coordinate.index]
         }
         set {
-            self[coordinate.x, coordinate.y] = newValue
+            self.squares[coordinate.index] = newValue
         }
     }
 
-    public subscript(_ fileIndex: Int, _ rankIndex: Int) -> Square {
+    public subscript(_ squareIndex: Int) -> Square {
         get {
-            precondition(
-                rankIndex < Const.baseBoardSize && fileIndex < Const.baseBoardSize,
-                "Coordinates must be in range [0..<\(Const.baseBoardSize)]"
-            )
-            return self.squares[rankIndex * Const.baseBoardSize + fileIndex]
+            return self.squares[squareIndex]
         }
         set {
-            precondition(
-                rankIndex < Const.baseBoardSize && fileIndex < Const.baseBoardSize,
-                "Coordinates must be in range [0..<\(Const.baseBoardSize)]"
-            )
-            self.squares[rankIndex * Const.baseBoardSize + fileIndex] = newValue
-        }
-    }
-
-    public subscript(_ coordinateString: String) -> Square {
-        get {
-            precondition(
-                coordinateString.count == 2,
-                "Coordinates must be two characters long (e.g. 'e2')"
-            )
-            let coordinateString = coordinateString.lowercased()
-            let fileIndex = Int(coordinateString.unicodeScalars.first!.value - 97)
-            let rankIndex = Int(coordinateString.unicodeScalars.last!.value - 49)
-            return self[fileIndex, rankIndex]
-        }
-        set {
-            precondition(
-                coordinateString.count == 2,
-                "Coordinates must be two characters long (e.g. 'e2')"
-            )
-            let coordinateString = coordinateString.lowercased()
-            let fileIndex = Int(coordinateString.unicodeScalars.first!.value - 97)
-            let rankIndex = Int(coordinateString.unicodeScalars.last!.value - 49)
-            self[fileIndex, rankIndex] = newValue
+            self.squares[squareIndex] = newValue
         }
     }
 }
@@ -89,7 +61,7 @@ extension Board {
 
     public init?(fenBoardSubstring: String) {
         let rankStrings = fenBoardSubstring.split(separator: "/").map(String.init)
-        guard rankStrings.count == Const.baseBoardSize else { return nil }
+        guard rankStrings.count == Const.boardSize else { return nil }
 
         var rankArray = [[Square]]()
         for (rankIndex, rankString) in rankStrings.reversed().enumerated() {
@@ -107,7 +79,7 @@ extension Board {
 
         for char in fenSubstring {
             switch char {
-            case let c where ("1"..."\(Const.baseBoardSize)").contains(String(c)):
+            case let c where ("1"..."\(Const.boardSize)").contains(String(c)):
                 rankSquares.append(contentsOf: repeatElement(nil, count: Int(String(c))!))
 
             default:
@@ -118,7 +90,7 @@ extension Board {
                 rankSquares.append(piece)
             }
         }
-        guard rankSquares.count == Const.baseBoardSize else {
+        guard rankSquares.count == Const.boardSize else {
             print("Invalid square count")
             return nil
         }
@@ -127,8 +99,8 @@ extension Board {
     }
 
     public var ranks: [[Square]] {
-        stride(from: 0, to: Const.baseBoardSize, by: 1).map { (rankIndex) -> [Square] in
-            return Array(squares[rankIndex * Const.baseBoardSize..<rankIndex * Const.baseBoardSize + Const.baseBoardSize])
+        stride(from: 0, to: Const.boardSize, by: 1).map { (rankIndex) -> [Square] in
+            return Array(squares[rankIndex * Const.boardSize..<rankIndex * Const.boardSize + Const.boardSize])
         }
     }
 
@@ -183,11 +155,11 @@ extension Board: CustomStringConvertible {
         }
         let prettyPrinted = prettyPrinted[openBoardIdx...closeBoardIdx].filter { "pnbrqkPNBRQK♙♘♗♖♕♔♟♞♝♜♛♚.\n".contains($0) }
         let rankStrings = prettyPrinted.split(separator: "\n").map(String.init)
-        guard rankStrings.count == Const.baseBoardSize else { return nil }
+        guard rankStrings.count == Const.boardSize else { return nil }
 
         var squares = [Square]()
         for (rankIndex, rankString) in rankStrings.reversed().enumerated() {
-            guard rankString.count == Const.baseBoardSize else {
+            guard rankString.count == Const.boardSize else {
                 print("Invalid square count in rank \(rankIndex)")
                 return nil
             }

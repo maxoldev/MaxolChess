@@ -27,10 +27,9 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
 
         var moves = [Move]()
 
-        for i in 0..<Const.baseBoardSquareCount {
-            let coordinate = Coordinate(i)
-            if let piece = position.board[coordinate], piece.color == sideToMove {
-                let pieceMoves = generateAllMoves(position, from: coordinate, parentMoveId: parentMoveId)
+        for i in 0..<Const.boardSquareCount {
+            if let piece = position.board[i], piece.color == sideToMove {
+                let pieceMoves = generateAllMoves(position, from: Coordinate(i), parentMoveId: parentMoveId)
                 moves.append(contentsOf: pieceMoves)
             }
         }
@@ -89,7 +88,7 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
                 // 2-square move
                 let isInStartPosition =
                     piece.color == .white && coordinate.y == 1
-                    || piece.color == .black && coordinate.y == Const.baseBoardSize - 2
+                    || piece.color == .black && coordinate.y == Const.boardSize - 2
                 if isInStartPosition {
                     if let newCoordinate = coordinate.advancedBy(0, 2 * moveDirection) {
                         if board[newCoordinate] == nil {
