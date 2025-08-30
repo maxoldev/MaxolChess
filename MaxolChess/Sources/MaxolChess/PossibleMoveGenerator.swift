@@ -21,7 +21,7 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
     public func generateAllMoves(_ position: Position) -> [Move] {
         return generateAllMoves(position, parentMoveId: nil)
     }
-    
+
     public func generateAllMoves(_ position: Position, parentMoveId: MoveId?) -> [Move] {
         let sideToMove = position.sideToMove
 
@@ -69,13 +69,33 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
         let moveDirection = piece.color == .white ? 1 : -1
 
         // Capture
-        if let newCoordinate = coordinate.advancedBy(-1, moveDirection) {
-            if let other = board[newCoordinate], other.color != piece.color {
+        if let newCoordinate = coordinate.advancedBy(-1, moveDirection), let other = board[newCoordinate], other.color != piece.color {
+            if newCoordinate.isPromotionRank {
+                moves.append(
+                    contentsOf: pawnPromotionMoves(
+                        piece: piece,
+                        from: coordinate,
+                        to: newCoordinate,
+                        captured: other,
+                        parentMoveId: parentMoveId
+                    )
+                )
+            } else {
                 moves.append(CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, captured: other))
             }
         }
-        if let newCoordinate = coordinate.advancedBy(1, moveDirection) {
-            if let other = board[newCoordinate], other.color != piece.color {
+        if let newCoordinate = coordinate.advancedBy(1, moveDirection), let other = board[newCoordinate], other.color != piece.color {
+            if newCoordinate.isPromotionRank {
+                moves.append(
+                    contentsOf: pawnPromotionMoves(
+                        piece: piece,
+                        from: coordinate,
+                        to: newCoordinate,
+                        captured: other,
+                        parentMoveId: parentMoveId
+                    )
+                )
+            } else {
                 moves.append(CaptureMove(parentMoveId: parentMoveId, piece: piece, from: coordinate, to: newCoordinate, captured: other))
             }
         }
@@ -102,6 +122,45 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
         return moves
     }
 
+    private func pawnPromotionMoves(piece: Piece, from coordinate: Coordinate, to: Coordinate, captured: Piece?, parentMoveId: MoveId?)
+        -> [Move]
+    {
+        return [
+            PromotionMove(
+                parentMoveId: parentMoveId,
+                piece: piece,
+                from: coordinate,
+                to: to,
+                newPiece: Piece(piece.color, .queen),
+                captured: captured
+            ),
+            PromotionMove(
+                parentMoveId: parentMoveId,
+                piece: piece,
+                from: coordinate,
+                to: to,
+                newPiece: Piece(piece.color, .rook),
+                captured: captured
+            ),
+            PromotionMove(
+                parentMoveId: parentMoveId,
+                piece: piece,
+                from: coordinate,
+                to: to,
+                newPiece: Piece(piece.color, .bishop),
+                captured: captured
+            ),
+            PromotionMove(
+                parentMoveId: parentMoveId,
+                piece: piece,
+                from: coordinate,
+                to: to,
+                newPiece: Piece(piece.color, .knight),
+                captured: captured
+            ),
+        ]
+    }
+
     private func knightMoves(_ board: Board, piece: Piece, from coordinate: Coordinate, parentMoveId: MoveId?) -> [Move] {
         var moves: [Move] = []
 
@@ -116,7 +175,7 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
             (-1, -2),
             (-2, -1),
         ]
-//        let deltas = [6, 15, 17, 10, -6, -15, -17, -10]
+        //        let deltas = [6, 15, 17, 10, -6, -15, -17, -10]
         for (dx, dy) in advances {
             if let newCoordinate = coordinate.advancedBy(dx, dy) {
                 if let other = board[newCoordinate] {
@@ -144,7 +203,7 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
             (1, -1),
             (-1, -1),
         ]
-//        let deltas = [7, 9, -7, -9]
+        //        let deltas = [7, 9, -7, -9]
         for (dx, dy) in advances {
             var count = 1
             repeat {
@@ -183,7 +242,7 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
             (1, 0),
             (0, -1),
         ]
-//        let deltas = [-1, 8, 1, -8]
+        //        let deltas = [-1, 8, 1, -8]
         for (dx, dy) in advances {
             var count = 1
             repeat {
@@ -233,7 +292,7 @@ public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
             (0, -1),
             (-1, -1),
         ]
-//        let deltas = [-1, 7, 8, 9, 1, -7, -8, -9]
+        //        let deltas = [-1, 7, 8, 9, 1, -7, -8, -9]
         for (dx, dy) in advances {
             if let newCoordinate = coordinate.advancedBy(dx, dy) {
                 if let oppositeKingCoordinate = position.kingCoordinate(piece.color.opposite) {

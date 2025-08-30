@@ -121,7 +121,7 @@ public class EngineImpl: Engine {
         }
 
         logDebug("Analysis... Depth = \(currentDepth + 1) halfmoves")
-        //        logDebug(position)
+        //logDebug(position)
 
         let sideToMove = position.sideToMove
         let legalMoveGenerator = LegalMoveGeneratorImpl()
@@ -140,6 +140,7 @@ public class EngineImpl: Engine {
             await Task.yield()
 
             let posAfterMove = position.applied(move: move)
+            // TODO: handle promotion capture
             let gain = (move as? CaptureMove)?.captured.type.defaultValue ?? 0
 
             let evaluation = positionEvaluator.evaluate(posAfterMove)

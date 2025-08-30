@@ -37,6 +37,14 @@ struct LegalMoveGeneratorTest {
         #expect(move.from == "f6" && move.to == "g6")
     }
 
+    @Test func position5() async throws {
+        let moves = legalMoveGen.generateLegalMoves(
+            try #require(Position(fen: "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8")),
+            parentMoveId: nil
+        )
+        #expect(moves.count == 44)
+    }
+
     @Test func movesFromStartPosition() async throws {
         let legalMoves = legalMoveGen.generateLegalMoves(Position.start, parentMoveId: nil)
         let repositionMoves = try #require(legalMoves as? [RepositionMove])

@@ -36,8 +36,10 @@ public struct Position: Sendable {
     public var sideToMove: PieceColor
     public private(set) var castlingRights: [PieceColor: Set<CastlingSide>] = [.white: [], .black: []]
     public private(set) var enPassantTargetCoordinate: Coordinate?
+    /// Number of half-moves (plies) since the last capture or pawn move (for the 50-move rule).
     public var halfMoveCountSinceLastCaptureOrPawnMove = 0
-    public var fullMoveIndex = 0
+    /// Starts at 1 and increments after Black’s move.
+    public var fullMoveIndex = 1
 
     public init(_ board: Board, sideToMove: PieceColor) {
         self.board = board
@@ -61,28 +63,70 @@ public struct Position: Sendable {
     }
 
     public func applied(move: Move) -> Position {
-        precondition(move.piece.color == sideToMove)
-
         var newBoard = board
         var newPosition = self
 
+        newPosition.halfMoveCountSinceLastCaptureOrPawnMove += 1
+        if self.sideToMove == .black {
+            // Increments after Black's moves
+            newPosition.fullMoveIndex += 1
+        }
+
         switch move {
         case let reposition as RepositionMove:
+            assert(reposition.piece.color == sideToMove)
             newBoard[reposition.to] = newBoard[reposition.from]
             newBoard[reposition.from] = nil
             if reposition.piece.type == .king {
                 newPosition.castlingRights[reposition.piece.color]!.removeAll()
             }
+            if reposition.piece.type == .pawn {
+                newPosition.halfMoveCountSinceLastCaptureOrPawnMove = 0
+            }
 
         case let capture as CaptureMove:
+            assert(capture.piece.color == sideToMove)
             newBoard[capture.to] = newBoard[capture.from]
             newBoard[capture.from] = nil
+            newPosition.halfMoveCountSinceLastCaptureOrPawnMove = 0
+
+        case let promotion as PromotionMove:
+            assert(promotion.piece.color == sideToMove)
+            newBoard[promotion.to] = promotion.newPiece
+            newBoard[promotion.from] = nil
+            newPosition.halfMoveCountSinceLastCaptureOrPawnMove = 0
+
+        case let castling as CastlingMove:
+            // TODO: throw an error when needed
+            let kingCoord = newPosition.kingCoordinate(sideToMove)!
+            newPosition.castlingRights[sideToMove]!.removeAll()
+
+            let rookCoord: Coordinate
+            let newKingCoord: Coordinate
+            let newRookCoord: Coordinate
+            switch castling.side {
+            case .kingSide:
+                rookCoord = kingCoord.rightmost
+                newKingCoord = kingCoord.advancedBy(2, 0)!
+                newRookCoord = newKingCoord.advancedBy(-1, 0)!
+
+            case .queenSide:
+                rookCoord = kingCoord.leftmost
+                newKingCoord = kingCoord.advancedBy(-2, 0)!
+                newRookCoord = newKingCoord.advancedBy(1, 0)!
+            }
+            newBoard[kingCoord] = nil
+            newBoard[rookCoord] = nil
+            newBoard[newKingCoord] = Piece(sideToMove, .king)
+            newBoard[newRookCoord] = Piece(sideToMove, .rook)
 
         default:
             fatalError("Not implemented: \(move)")
         }
+
         newPosition.board = newBoard
         newPosition.sideToMove = sideToMove.opposite
+
         return newPosition
     }
 

@@ -30,6 +30,16 @@ struct CoordinateTest {
         #expect(Coordinate("a1") == Coordinate(0))
     }
 
+    @Test func leftmost() async throws {
+        #expect(Coordinate("e1").leftmost == "a1")
+        #expect(Coordinate("e8").leftmost == "a8")
+    }
+
+    @Test func rightmost() async throws {
+        #expect(Coordinate("e1").rightmost == "h1")
+        #expect(Coordinate("e8").rightmost == "h8")
+    }
+
     @Test func valid() async throws {
         #expect(Coordinate("a1").isValid)
         #expect(Coordinate("h8").isValid)

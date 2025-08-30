@@ -35,7 +35,6 @@ actor MoveResultRepo {
         }
         
         let move = zeroDepthMoves.sorted { moveResults[$0.id]!.gain > moveResults[$1.id]!.gain }.first
-//        logConsoleMarked(moveResults[move!.id])
         return move
     }
 

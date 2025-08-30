@@ -39,10 +39,10 @@ public class PositionEvaluatorImpl: PositionEvaluator {
 
         if let kingCoordinate = position.kingCoordinate(position.sideToMove) {
             let attackersPosition = position.opposite
-            // Check all possible moves that targeted to the king's square
+            // Check all moves that targeted to the king's square
             // These are "attacks" on the king
             let attackerMovesWithCheck = possibleMoveGenerator.generateAllMoves(attackersPosition)
-                .filter { ($0 as? CaptureMove)?.to == kingCoordinate }
+                .filter { ($0 as? CaptureMove)?.to == kingCoordinate || ($0 as? PromotionMove)?.to == kingCoordinate}
 
             if !attackerMovesWithCheck.isEmpty {
                 isKingChecked = true
@@ -53,7 +53,7 @@ public class PositionEvaluatorImpl: PositionEvaluator {
                     let positionAfterDefenderMove = position.applied(move: defenderMove)
                     let sideToMoveKingCoordinateAfterDefenderMove = positionAfterDefenderMove.kingCoordinate(position.sideToMove)
                     let attackerMovesWithCheckAfterDefenderMove = possibleMoveGenerator.generateAllMoves(positionAfterDefenderMove)
-                        .filter { ($0 as? CaptureMove)?.to == sideToMoveKingCoordinateAfterDefenderMove }
+                        .filter { ($0 as? CaptureMove)?.to == sideToMoveKingCoordinateAfterDefenderMove || ($0 as? PromotionMove)?.to == sideToMoveKingCoordinateAfterDefenderMove }
 
                     if !attackerMovesWithCheckAfterDefenderMove.isEmpty {
                         stillInCheckCount += 1

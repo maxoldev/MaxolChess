@@ -59,6 +59,18 @@ public struct Coordinate: Equatable, Sendable {
     public func within1SquareOf(_ other: Coordinate) -> Bool {
         abs(x - other.x) <= 1 && abs(y - other.y) <= 1
     }
+
+    public var isPromotionRank: Bool {
+        y == 0 || y == Const.boardSize - 1
+    }
+
+    public var leftmost: Coordinate {
+        Coordinate(0, y)
+    }
+
+    public var rightmost: Coordinate {
+        Coordinate(Const.boardSize - 1, y)
+    }
 }
 
 extension Coordinate: CustomStringConvertible {

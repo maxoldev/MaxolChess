@@ -10,6 +10,8 @@ import Testing
 @testable import MaxolChess
 
 struct PositionEvaluatorTest {
+    let posEval = PositionEvaluatorImpl()
+
     @Test func normal() async throws {
         let posE3 = Position.start.applied(move: RepositionMove(parentMoveId: nil, piece: Piece(.white, .pawn), from: "e2", to: "e3"))
         let posE4 = Position.start.applied(move: RepositionMove(parentMoveId: nil, piece: Piece(.white, .pawn), from: "e2", to: "e4"))
@@ -21,7 +23,7 @@ struct PositionEvaluatorTest {
         #expect((evalE4.values[.white] - evalE3.values[.white]).isApproximatelyEqual(to: coefDiff))
     }
 
-    @Test func checkmates() async throws {
+    @Test func checkmate1() async throws {
         let pos = Position(
             Board(
                 prettyPrinted: """
@@ -40,8 +42,28 @@ struct PositionEvaluatorTest {
             )!,
             sideToMove: .black
         )
+        #expect(posEval.evaluate(pos).state == .kingCheckmated)
+    }
 
-        let posEval = PositionEvaluatorImpl()
+    @Test func checkmate2() async throws {
+        let pos = Position(
+            Board(
+                prettyPrinted: """
+                      ┌───────────────┐
+                    8  ♜ . . ♛ ♚ ♝ ♞ ♜ 
+                    7  . . ♟ ♟ ♟ ♙ ♟ ♟ 
+                    6  ♟ . . . . . . . 
+                    5  . ♟ . . . . ♘ . 
+                    4  . . . . . . . . 
+                    3  . . ♙ . . . . . 
+                    2  ♙ ♙ . ♔ ♗ ♙ ♝ ♙ 
+                    1  ♖ ♘ ♗ ♕ . . . . 
+                      └───────────────┘
+                       a b c d e f g h 
+                    """
+            )!,
+            sideToMove: .black
+        )
         #expect(posEval.evaluate(pos).state == .kingCheckmated)
     }
 }
