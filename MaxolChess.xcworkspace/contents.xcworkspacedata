@@ -2,6 +2,12 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:MaxolChessBenchmark.xctestplan">
+   </FileRef>
+   <FileRef
+      location = "group:MaxolChessAll.xctestplan">
+   </FileRef>
+   <FileRef
       location = "group:MaxolChessConsole/MaxolChessConsole.xcodeproj">
    </FileRef>
    <FileRef

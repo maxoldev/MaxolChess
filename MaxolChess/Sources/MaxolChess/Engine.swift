@@ -22,15 +22,15 @@ public enum AnalisysLimit {
     case depth(Int)
 }
 
-public struct EngineConfiguration {
+public struct EngineConfiguration: Sendable {
     //    public var analisysLimit: AnalisysLimit = .depth(2)
     /// In halfmoves
     public let maxDepth: Int
-    public let returnFirstCheckmateMove: Bool
+    public let analyzeFurtherAfterCheckmateOnFirstDepth: Bool
 
-    public init(maxDepth: Int = 2, returnFirstCheckmateMove: Bool = false) {
+    public init(maxDepth: Int = 2, analyzeFurtherAfterCheckmateOnFirstDepth: Bool = false) {
         self.maxDepth = maxDepth
-        self.returnFirstCheckmateMove = returnFirstCheckmateMove
+        self.analyzeFurtherAfterCheckmateOnFirstDepth = analyzeFurtherAfterCheckmateOnFirstDepth
     }
 }
 
@@ -82,7 +82,13 @@ public class EngineImpl: Engine {
 
         await moveResultRepo.clear()
 
-        await Self.analyze(position: currentState.position, parentMoveId: nil, currentDepth: 0, maxDepth: configuration.maxDepth, moveResultRepo: moveResultRepo)
+        await Self.analyze(
+            position: currentState.position,
+            parentMoveId: nil,
+            currentDepth: 0,
+            configuration: configuration,
+            moveResultRepo: moveResultRepo
+        )
 
         let bestMove = await moveResultRepo.bestMove()
         logDebug("BEST MOVE:", bestMove, bench.checkpoint(), category: .engine)
@@ -103,27 +109,35 @@ public class EngineImpl: Engine {
         currentState.playedMoves.append(move)
     }
 
-    private static func analyze(position: Position, parentMoveId: MoveId?, currentDepth: Int, maxDepth: Int, moveResultRepo: MoveResultRepo) async {
-        if currentDepth >= maxDepth {
+    private static func analyze(
+        position: Position,
+        parentMoveId: MoveId?,
+        currentDepth: Int,
+        configuration: EngineConfiguration,
+        moveResultRepo: MoveResultRepo
+    ) async {
+        if currentDepth >= configuration.maxDepth {
             return
         }
 
         logDebug("Analysis... Depth = \(currentDepth + 1) halfmoves")
-//        logDebug(position)
+        //        logDebug(position)
 
         let sideToMove = position.sideToMove
         let legalMoveGenerator = LegalMoveGeneratorImpl()
         let positionEvaluator = PositionEvaluatorImpl()
         let moves = legalMoveGenerator.generateLegalMoves(position, parentMoveId: parentMoveId)
 
+        if currentDepth == 0 {
+            await moveResultRepo.set(zeroDepthMoves: moves)
+        }
+
         var movesToAnalyzeFurther = [(move: Move, posAfterMove: Position)]()
+        var moveResults = [MoveResult]()
+        var wasCheckmateFound = false
 
         for move in moves {
             await Task.yield()
-
-            if parentMoveId == nil {
-                await moveResultRepo.add(move: move)
-            }
 
             let posAfterMove = position.applied(move: move)
             let gain = (move as? CaptureMove)?.captured.type.defaultValue ?? 0
@@ -132,6 +146,8 @@ public class EngineImpl: Engine {
 
             switch evaluation.state {
             case .kingCheckmated:
+                wasCheckmateFound = true
+
                 let result = MoveResult(
                     side: sideToMove,
                     move: move,
@@ -142,10 +158,7 @@ public class EngineImpl: Engine {
                     isEnemyKingStalemated: false,
                     isDraw: false
                 )
-                await moveResultRepo.add(moveResult: result)
-                if /*configuration.returnFirstCheckmateMove*/ true && currentDepth == 0 {
-                    return
-                }
+                moveResults.append(result)
 
             case .kingChecked:
                 let result = MoveResult(
@@ -158,7 +171,7 @@ public class EngineImpl: Engine {
                     isEnemyKingStalemated: false,
                     isDraw: false
                 )
-                await moveResultRepo.add(moveResult: result)
+                moveResults.append(result)
                 movesToAnalyzeFurther.append((move, posAfterMove))
 
             case .kingStalemated:
@@ -172,7 +185,7 @@ public class EngineImpl: Engine {
                     isEnemyKingStalemated: true,
                     isDraw: true
                 )
-                await moveResultRepo.add(moveResult: result)
+                moveResults.append(result)
 
             case .draw:
                 let result = MoveResult(
@@ -185,7 +198,7 @@ public class EngineImpl: Engine {
                     isEnemyKingStalemated: false,
                     isDraw: true
                 )
-                await moveResultRepo.add(moveResult: result)
+                moveResults.append(result)
 
             case .normal:
                 let result = MoveResult(
@@ -198,15 +211,27 @@ public class EngineImpl: Engine {
                     isEnemyKingStalemated: false,
                     isDraw: false
                 )
-                await moveResultRepo.add(moveResult: result)
+                moveResults.append(result)
                 movesToAnalyzeFurther.append((move, posAfterMove))
             }
+        }
+
+        await moveResultRepo.add(moveResults: moveResults)
+
+        if wasCheckmateFound && !configuration.analyzeFurtherAfterCheckmateOnFirstDepth && currentDepth == 0 {
+            return
         }
 
         await withTaskGroup { group in
             for (move, posAfterMove) in movesToAnalyzeFurther {
                 group.addTask {
-                    await analyze(position: posAfterMove, parentMoveId: move.id, currentDepth: currentDepth + 1, maxDepth: maxDepth, moveResultRepo: moveResultRepo)
+                    await analyze(
+                        position: posAfterMove,
+                        parentMoveId: move.id,
+                        currentDepth: currentDepth + 1,
+                        configuration: configuration,
+                        moveResultRepo: moveResultRepo
+                    )
                 }
             }
         }

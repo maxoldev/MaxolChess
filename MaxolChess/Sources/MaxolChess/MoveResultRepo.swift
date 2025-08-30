@@ -35,16 +35,18 @@ actor MoveResultRepo {
         }
         
         let move = zeroDepthMoves.sorted { moveResults[$0.id]!.gain > moveResults[$1.id]!.gain }.first
-        logConsoleMarked(moveResults[move!.id])
+//        logConsoleMarked(moveResults[move!.id])
         return move
     }
 
-    func add(move: any Move) async {
-        zeroDepthMoves.append(move)
+    func set(zeroDepthMoves: [any Move]) async {
+        self.zeroDepthMoves = zeroDepthMoves
     }
 
-    func add(moveResult: MoveResult) async {
-        moveResults[moveResult.move.id] = moveResult
+    func add(moveResults: [MoveResult]) async {
+        moveResults.forEach {
+            self.moveResults[$0.move.id] = $0
+        }
     }
     
     func clear() {

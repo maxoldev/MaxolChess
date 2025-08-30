@@ -1,0 +1,34 @@
+{
+  "configurations" : [
+    {
+      "id" : "838B02D6-9129-4AC7-BAE9-5C2FAB9B5A57",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "skippedTests" : [
+        "BenchmarkTest",
+        "BenchmarkTest\/testBestMoveDepth1()",
+        "BenchmarkTest\/testBestMoveDepth2()",
+        "BenchmarkTest\/testBestMoveDepth3()",
+        "BenchmarkTest\/testBestMoveDepth4()",
+        "BenchmarkTest\/testEvaluation()",
+        "BenchmarkTest\/testGenerateAllMoves()",
+        "BenchmarkTest\/testGenerateLegalMoves()"
+      ],
+      "target" : {
+        "containerPath" : "container:..\/MaxolChess",
+        "identifier" : "MaxolChessTests",
+        "name" : "MaxolChessTests"
+      }
+    }
+  ],
+  "version" : 1
+}

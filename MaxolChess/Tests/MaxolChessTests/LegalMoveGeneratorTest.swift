@@ -38,8 +38,7 @@ struct LegalMoveGeneratorTest {
     }
 
     @Test func movesFromStartPosition() async throws {
-        let pos = Position.start
-        let legalMoves = legalMoveGen.generateLegalMoves(pos, parentMoveId: nil)
+        let legalMoves = legalMoveGen.generateLegalMoves(Position.start, parentMoveId: nil)
         let repositionMoves = try #require(legalMoves as? [RepositionMove])
 
         let expectedMoves = [

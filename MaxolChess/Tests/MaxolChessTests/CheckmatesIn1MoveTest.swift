@@ -12,7 +12,6 @@ import Testing
 struct CheckmatesIn1MoveTest {
     @Test func checkmateIn1Move1() async throws {
         let engine: Engine = EngineImpl(
-            configuration: EngineConfiguration(returnFirstCheckmateMove: true),
             gameState: GameState(position: Position(fen: "1KR4R/PPP5/5P2/4Q1P1/1p2p2P/2ppq3/3n1kp1/r7 b KQ - 0 1")!)
         )
         #expect(try #require(await engine.calculateBestMove() as? CaptureMove).to == "a7")
@@ -20,7 +19,6 @@ struct CheckmatesIn1MoveTest {
 
     @Test func checkmateIn1Move2() async throws {
         let engine: Engine = EngineImpl(
-            configuration: EngineConfiguration(returnFirstCheckmateMove: true),
             gameState:
                 GameState(
                     position: Position(
@@ -47,7 +45,7 @@ struct CheckmatesIn1MoveTest {
     }
 
     @Test func checkmateIn1Move3() async throws {
-        let engine: Engine = EngineImpl(configuration: EngineConfiguration(returnFirstCheckmateMove: true))
+        let engine: Engine = EngineImpl()
         engine.setCurrentState(
             GameState(
                 position: Position(

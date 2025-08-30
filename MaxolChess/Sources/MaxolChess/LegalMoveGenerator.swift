@@ -12,14 +12,9 @@ public protocol LegalMoveGenerator {
 
 public class LegalMoveGeneratorImpl: LegalMoveGenerator {
     private let possibleMoveGenerator: PossibleMoveGenerator
-    private let positionEvaluator: PositionEvaluator
 
-    public init(
-        possibleMoveGenerator: PossibleMoveGenerator = PossibleMoveGeneratorImpl(),
-        positionEvaluator: PositionEvaluator = PositionEvaluatorImpl()
-    ) {
+    public init(possibleMoveGenerator: PossibleMoveGenerator = PossibleMoveGeneratorImpl()) {
         self.possibleMoveGenerator = possibleMoveGenerator
-        self.positionEvaluator = positionEvaluator
     }
 
     public func generateLegalMoves(_ position: Position, parentMoveId: MoveId?) -> [Move] {
@@ -30,19 +25,26 @@ public class LegalMoveGeneratorImpl: LegalMoveGenerator {
         for i in 0..<Const.baseBoardSquareCount {
             let coordinate = Coordinate(i)
             if let piece = position.board[coordinate], piece.color == sideToMove {
-                let allMoves = possibleMoveGenerator.generateAllMoves(position, from: coordinate, parentMoveId: parentMoveId)
-                var possibleMoves = [Move]()
-                for move in allMoves {
+                let allPieceMoves = possibleMoveGenerator.generateAllMoves(position, from: coordinate, parentMoveId: parentMoveId)
+                var legalPieceMoves = [Move]()
+                for move in allPieceMoves {
                     var posAfterMove = position.applied(move: move)
                     posAfterMove.sideToMove = sideToMove
 
-                    let evaluation = positionEvaluator.evaluate(posAfterMove)
+                    if let kingCoordinate = posAfterMove.kingCoordinate(sideToMove) {
+                        let attackersPosition = posAfterMove.opposite
+                        // Check all possible moves that targeted to the king's square
+                        // These are "attacks" on the king
+                        let attackerMovesWithCheck = possibleMoveGenerator.generateAllMoves(attackersPosition)
+                            .filter { ($0 as? CaptureMove)?.to == kingCoordinate }
 
-                    if evaluation.state != .kingChecked && evaluation.state != .kingCheckmated {
-                        possibleMoves.append(move)
+                        let isNoCheck = attackerMovesWithCheck.isEmpty
+                        if isNoCheck {
+                            legalPieceMoves.append(move)
+                        }
                     }
                 }
-                legalMoves.append(contentsOf: possibleMoves)
+                legalMoves.append(contentsOf: legalPieceMoves)
             }
         }
 

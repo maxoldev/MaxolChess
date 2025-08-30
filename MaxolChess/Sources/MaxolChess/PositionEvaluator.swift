@@ -39,7 +39,7 @@ public class PositionEvaluatorImpl: PositionEvaluator {
 
         if let kingCoordinate = position.kingCoordinate(position.sideToMove) {
             let attackersPosition = position.opposite
-            // Check all possible moves that directed on the king's square
+            // Check all possible moves that targeted to the king's square
             // These are "attacks" on the king
             let attackerMovesWithCheck = possibleMoveGenerator.generateAllMoves(attackersPosition)
                 .filter { ($0 as? CaptureMove)?.to == kingCoordinate }

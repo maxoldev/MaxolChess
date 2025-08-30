@@ -1,0 +1,69 @@
+{
+  "configurations" : [
+    {
+      "id" : "A4104A7F-DF38-4290-A60C-C471DF70788F",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "skippedTests" : {
+        "suites" : [
+          {
+            "name" : "BoardTest"
+          },
+          {
+            "name" : "CheckmatesIn1MoveTest"
+          },
+          {
+            "name" : "CheckmatesTest"
+          },
+          {
+            "name" : "EngineTest"
+          },
+          {
+            "name" : "LegalMoveGeneratorTest"
+          },
+          {
+            "name" : "ModelsInitialization"
+          },
+          {
+            "name" : "MovesAppliedTest"
+          },
+          {
+            "name" : "PieceTest"
+          },
+          {
+            "name" : "PositionCheckerTest"
+          },
+          {
+            "name" : "PositionEvaluatorTest"
+          },
+          {
+            "name" : "PossibleMovesTest"
+          },
+          {
+            "name" : "ValueCalculatorTest"
+          }
+        ],
+        "xctestClasses" : [
+          {
+            "name" : "BestMoveMeasure"
+          }
+        ]
+      },
+      "target" : {
+        "containerPath" : "container:..\/MaxolChess",
+        "identifier" : "MaxolChessTests",
+        "name" : "MaxolChessTests"
+      }
+    }
+  ],
+  "version" : 2
+}

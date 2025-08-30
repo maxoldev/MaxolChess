@@ -33,6 +33,12 @@
             reference = "container:MaxolChessConsole.xctestplan"
             default = "YES">
          </TestPlanReference>
+         <TestPlanReference
+            reference = "container:../MaxolChessAll.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:../MaxolChessBenchmark.xctestplan">
+         </TestPlanReference>
       </TestPlans>
    </TestAction>
    <LaunchAction
