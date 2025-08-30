@@ -16,6 +16,9 @@
       "skippedTests" : {
         "suites" : [
           {
+            "name" : "AttackCheckerTest"
+          },
+          {
             "name" : "BoardTest"
           },
           {
@@ -50,6 +53,9 @@
           },
           {
             "name" : "PositionTest"
+          },
+          {
+            "name" : "PositionValidatorTest"
           },
           {
             "name" : "PossibleMovesTest"

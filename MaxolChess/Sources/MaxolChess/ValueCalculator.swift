@@ -23,7 +23,7 @@ public protocol ValueCalculator {
     func calculate(_ position: Position) -> ValueCalculation
 }
 
-public class ValueCalculatorImpl: ValueCalculator {
+public final class ValueCalculatorImpl: ValueCalculator {
     public init() {
     }
 

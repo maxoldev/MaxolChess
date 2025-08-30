@@ -8,7 +8,7 @@
 public typealias File = String
 public typealias Rank = Int
 
-public struct Coordinate: Equatable, Sendable {
+public struct Coordinate: Equatable, Sendable, Hashable {
     public var x: Int
     public var y: Int
 

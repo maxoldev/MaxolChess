@@ -1,5 +1,5 @@
 //
-//  PositionCheckerTest.swift
+//  PositionValidatorTest.swift
 //  MaxolChess
 //
 //  Created by Maksim Solovev on 24.08.2025.
@@ -9,14 +9,14 @@ import Testing
 
 @testable import MaxolChess
 
-struct PositionCheckerTest {
+struct PositionValidatorTest {
     @Test func valid() async throws {
-        #expect(PositionCheckerImpl().check(Position.start) == .valid)
+        #expect(PositionValidatorImpl().validate(Position.start) == .valid)
     }
 
     @Test func invalid() async throws {
         #expect(
-            PositionCheckerImpl().check(
+            PositionValidatorImpl().validate(
                 Position(
                     Board(
                         prettyPrinted: """

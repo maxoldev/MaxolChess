@@ -53,9 +53,9 @@ struct PossibleMovesTest {
         }
     }
 
-    private var expectedBishopMovesFromE5: [String] {
-        ["d6", "c7", "b8", "f6", "g7", "h8", "f4", "g3", "h2", "d4", "c3", "b2", "a1"]
-    }
+    private var expectedBishopMovesFromE5: [Coordinate] = [
+        "d6", "c7", "b8", "f6", "g7", "h8", "f4", "g3", "h2", "d4", "c3", "b2", "a1"
+    ]
 
     @Test func bishopMovesOnEmptyBoard() async throws {
         let pos = Position(try #require(Board(pieces: (Piece(.white, .bishop), "e5"))), sideToMove: .white)
@@ -64,13 +64,13 @@ struct PossibleMovesTest {
         #expect(moves.count == 13)
         for (idx, expectedTo) in expectedBishopMovesFromE5.enumerated() {
             #expect((moves[idx] as? RepositionMove)?.from == "e5")
-            #expect((moves[idx] as? RepositionMove)?.to == Coordinate(expectedTo))
+            #expect((moves[idx] as? RepositionMove)?.to == expectedTo)
         }
     }
 
-    private var expectedRookMovesFromE5: [String] {
-        ["d5", "c5", "b5", "a5", "e6", "e7", "e8", "f5", "g5", "h5", "e4", "e3", "e2", "e1"]
-    }
+    private let expectedRookMovesFromE5: [Coordinate] = [
+        "d5", "c5", "b5", "a5", "e6", "e7", "e8", "f5", "g5", "h5", "e4", "e3", "e2", "e1",
+    ]
 
     @Test func rookMovesOnEmptyBoard() async throws {
         let pos = Position(try #require(Board(pieces: (Piece(.white, .rook), "e5"))), sideToMove: .white)
@@ -79,7 +79,7 @@ struct PossibleMovesTest {
         #expect(moves.count == 14)
         for (idx, expectedTo) in expectedRookMovesFromE5.enumerated() {
             #expect((moves[idx] as? RepositionMove)?.from == "e5")
-            #expect((moves[idx] as? RepositionMove)?.to == Coordinate(expectedTo))
+            #expect((moves[idx] as? RepositionMove)?.to == expectedTo)
         }
     }
 
@@ -87,10 +87,12 @@ struct PossibleMovesTest {
         let pos = Position(try #require(Board(pieces: (Piece(.white, .queen), "e5"))), sideToMove: .white)
         let moves = moveGen.generateAllMoves(pos, parentMoveId: nil)
 
+        let expectedQueenMovesFromE5 = expectedRookMovesFromE5 + expectedBishopMovesFromE5
+
         #expect(moves.count == 27)
-        for (idx, expectedTo) in (expectedRookMovesFromE5 + expectedBishopMovesFromE5).enumerated() {
+        for (idx, expectedTo) in expectedQueenMovesFromE5.enumerated() {
             #expect((moves[idx] as? RepositionMove)?.from == "e5")
-            #expect((moves[idx] as? RepositionMove)?.to == Coordinate(expectedTo))
+            #expect((moves[idx] as? RepositionMove)?.to == expectedTo)
         }
     }
 

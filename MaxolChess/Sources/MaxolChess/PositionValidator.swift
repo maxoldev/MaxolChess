@@ -5,23 +5,23 @@
 //  Created by Maksim Solovev on 23.08.2025.
 //
 
-public enum PositionCheckerResult: Equatable {
+public enum PositionValidatorResult: Equatable {
     case valid
     case invalid2KingsInCheck
 }
 
-public protocol PositionChecker: AnyObject {
-    func check(_ position: Position) -> PositionCheckerResult
+public protocol PositionValidator: AnyObject {
+    func validate(_ position: Position) -> PositionValidatorResult
 }
 
-public class PositionCheckerImpl: PositionChecker {
+public final class PositionValidatorImpl: PositionValidator {
     let possibleMoveGenerator: PossibleMoveGenerator
 
     public init(possibleMoveGenerator: PossibleMoveGenerator = PossibleMoveGeneratorImpl()) {
         self.possibleMoveGenerator = possibleMoveGenerator
     }
 
-    public func check(_ position: Position) -> PositionCheckerResult {
+    public func validate(_ position: Position) -> PositionValidatorResult {
         var kingsInCheck = Set<PieceColor>()
 
         for kingColor in [PieceColor.white, .black] {

@@ -21,16 +21,19 @@ public protocol PositionEvaluator: AnyObject {
     func evaluate(_ position: Position) -> PositionEvaluation
 }
 
-public class PositionEvaluatorImpl: PositionEvaluator {
+public final class PositionEvaluatorImpl: PositionEvaluator {
     private let valueCalculator: ValueCalculator
     private let possibleMoveGenerator: PossibleMoveGenerator
+    private let attackChecker: AttackChecker
 
     public init(
         valueCalculator: ValueCalculator = ValueCalculatorImpl(),
-        possibleMoveGenerator: PossibleMoveGenerator = PossibleMoveGeneratorImpl()
+        possibleMoveGenerator: PossibleMoveGenerator = PossibleMoveGeneratorImpl(),
+        attackChecker: AttackChecker = AttackCheckerImpl()
     ) {
         self.valueCalculator = valueCalculator
         self.possibleMoveGenerator = possibleMoveGenerator
+        self.attackChecker = attackChecker
     }
 
     public func evaluate(_ position: Position) -> PositionEvaluation {
@@ -38,24 +41,23 @@ public class PositionEvaluatorImpl: PositionEvaluator {
         var isKingCheckedmated = false
 
         if let kingCoordinate = position.kingCoordinate(position.sideToMove) {
-            let attackersPosition = position.opposite
-            // Check all moves that targeted to the king's square
-            // These are "attacks" on the king
-            let attackerMovesWithCheck = possibleMoveGenerator.generateAllMoves(attackersPosition)
-                .filter { ($0 as? CaptureMove)?.to == kingCoordinate || ($0 as? PromotionMove)?.to == kingCoordinate}
+            let isKingAttacked = attackChecker.isCoordinate(kingCoordinate, attackedBy: position.sideToMove.opposite, board: position.board)
 
-            if !attackerMovesWithCheck.isEmpty {
+            if isKingAttacked {
                 isKingChecked = true
 
                 let defenderMoves = possibleMoveGenerator.generateAllMoves(position)
                 var stillInCheckCount = 0
                 for defenderMove in defenderMoves {
                     let positionAfterDefenderMove = position.applied(move: defenderMove)
-                    let sideToMoveKingCoordinateAfterDefenderMove = positionAfterDefenderMove.kingCoordinate(position.sideToMove)
-                    let attackerMovesWithCheckAfterDefenderMove = possibleMoveGenerator.generateAllMoves(positionAfterDefenderMove)
-                        .filter { ($0 as? CaptureMove)?.to == sideToMoveKingCoordinateAfterDefenderMove || ($0 as? PromotionMove)?.to == sideToMoveKingCoordinateAfterDefenderMove }
+                    let kingCoordinateAfterDefenderMove = positionAfterDefenderMove.kingCoordinate(position.sideToMove)!
+                    let isKingAttacked = attackChecker.isCoordinate(
+                        kingCoordinateAfterDefenderMove,
+                        attackedBy: position.sideToMove.opposite,
+                        board: positionAfterDefenderMove.board
+                    )
 
-                    if !attackerMovesWithCheckAfterDefenderMove.isEmpty {
+                    if isKingAttacked {
                         stillInCheckCount += 1
                     }
                 }

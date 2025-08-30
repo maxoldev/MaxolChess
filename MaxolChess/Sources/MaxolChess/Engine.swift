@@ -44,7 +44,7 @@ public protocol Engine {
     func updateConfiguration(_ configuration: EngineConfiguration)
 }
 
-public class EngineImpl: Engine {
+public final class EngineImpl: Engine {
     private let configuration: EngineConfiguration
     private let valueCalculator: ValueCalculator
     private let positionEvaluator: PositionEvaluator

@@ -14,7 +14,7 @@ public protocol PossibleMoveGenerator {
     func generateAllMoves(_ position: Position, from coordinate: Coordinate, parentMoveId: MoveId?) -> [Move]
 }
 
-public class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
+public final class PossibleMoveGeneratorImpl: PossibleMoveGenerator {
     public init() {
     }
 
