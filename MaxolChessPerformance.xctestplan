@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "A4104A7F-DF38-4290-A60C-C471DF70788F",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "skippedTests" : [
+        "Position5Test\/testBestMoveDepth4()",
+        "StartPositionTest\/testBestMoveDepth4()"
+      ],
+      "target" : {
+        "containerPath" : "container:MaxolChessConsole.xcodeproj",
+        "identifier" : "502B7FFD2E6434140008FC7F",
+        "name" : "PerformanceTests"
+      }
+    }
+  ],
+  "version" : 2
+}

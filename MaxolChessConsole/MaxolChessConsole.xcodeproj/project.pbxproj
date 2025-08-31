@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		502B80092E6434680008FC7F /* MaxolChess in Frameworks */ = {isa = PBXBuildFile; productRef = 502B80082E6434680008FC7F /* MaxolChess */; };
 		50392E7E2E52445E00507673 /* MaxolChess in Frameworks */ = {isa = PBXBuildFile; productRef = 50392E7D2E52445E00507673 /* MaxolChess */; };
 		507B02B32E5B6E03004B0E7B /* MaxolLog in Frameworks */ = {isa = PBXBuildFile; productRef = 507B02B22E5B6E03004B0E7B /* MaxolLog */; };
 /* End PBXBuildFile section */
@@ -24,10 +25,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		502B7FFE2E6434140008FC7F /* PerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		50392E722E52415400507673 /* MaxolChessConsole */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MaxolChessConsole; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		502B7FFF2E6434140008FC7F /* PerformanceTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PerformanceTests;
+			sourceTree = "<group>";
+		};
 		50392E742E52415400507673 /* MaxolChessConsole */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = MaxolChessConsole;
@@ -36,6 +43,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		502B7FFB2E6434140008FC7F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				502B80092E6434680008FC7F /* MaxolChess in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		50392E6F2E52415400507673 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -48,10 +63,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		502B80072E6434680008FC7F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		50392E692E52415400507673 = {
 			isa = PBXGroup;
 			children = (
 				50392E742E52415400507673 /* MaxolChessConsole */,
+				502B7FFF2E6434140008FC7F /* PerformanceTests */,
+				502B80072E6434680008FC7F /* Frameworks */,
 				50392E732E52415400507673 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -60,6 +84,7 @@
 			isa = PBXGroup;
 			children = (
 				50392E722E52415400507673 /* MaxolChessConsole */,
+				502B7FFE2E6434140008FC7F /* PerformanceTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,6 +92,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		502B7FFD2E6434140008FC7F /* PerformanceTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 502B80042E6434140008FC7F /* Build configuration list for PBXNativeTarget "PerformanceTests" */;
+			buildPhases = (
+				502B7FFA2E6434140008FC7F /* Sources */,
+				502B7FFB2E6434140008FC7F /* Frameworks */,
+				502B7FFC2E6434140008FC7F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				502B7FFF2E6434140008FC7F /* PerformanceTests */,
+			);
+			name = PerformanceTests;
+			packageProductDependencies = (
+				502B80082E6434680008FC7F /* MaxolChess */,
+			);
+			productName = PerformanceTests;
+			productReference = 502B7FFE2E6434140008FC7F /* PerformanceTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		50392E712E52415400507673 /* MaxolChessConsole */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 50392E792E52415400507673 /* Build configuration list for PBXNativeTarget "MaxolChessConsole" */;
@@ -101,6 +149,9 @@
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
+					502B7FFD2E6434140008FC7F = {
+						CreatedOnToolsVersion = 16.4;
+					};
 					50392E712E52415400507673 = {
 						CreatedOnToolsVersion = 16.4;
 					};
@@ -125,11 +176,29 @@
 			projectRoot = "";
 			targets = (
 				50392E712E52415400507673 /* MaxolChessConsole */,
+				502B7FFD2E6434140008FC7F /* PerformanceTests */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		502B7FFC2E6434140008FC7F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		502B7FFA2E6434140008FC7F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		50392E6E2E52415400507673 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -140,6 +209,36 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		502B80022E6434140008FC7F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z6C73UXTG7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = maxoldev.PerformanceTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		502B80032E6434140008FC7F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z6C73UXTG7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = maxoldev.PerformanceTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		50392E772E52415400507673 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -285,6 +384,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		502B80042E6434140008FC7F /* Build configuration list for PBXNativeTarget "PerformanceTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				502B80022E6434140008FC7F /* Debug */,
+				502B80032E6434140008FC7F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		50392E6D2E52415400507673 /* Build configuration list for PBXProject "MaxolChessConsole" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -317,6 +425,10 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		502B80082E6434680008FC7F /* MaxolChess */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MaxolChess;
+		};
 		50392E7D2E52445E00507673 /* MaxolChess */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MaxolChess;

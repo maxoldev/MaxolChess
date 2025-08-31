@@ -1,23 +1,20 @@
 //
-//  BenchmarkTest.swift
-//  MaxolChess
+//  StartPositionTest.swift
+//  PerformanceTests
 //
-//  Created by Maksim Solovev on 28.08.2025.
+//  Created by Maksim Solovev on 31.08.2025.
 //
 
 import XCTest
 
 @testable import MaxolChess
 
-private let pos = Position(fen: "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8")!
-
-final class BenchmarkTest: XCTestCase {
-
+final class StartPositionTest: XCTestCase {
     func testGenerateAllMoves() throws {
         let moveGen = PossibleMoveGeneratorImpl()
 
         measure {
-            _ = moveGen.generateAllMoves(pos)
+            _ = moveGen.generateAllMoves(Position.start)
         }
     }
 
@@ -25,7 +22,7 @@ final class BenchmarkTest: XCTestCase {
         let legalMoveGen = LegalMoveGeneratorImpl()
 
         measure {
-            _ = legalMoveGen.generateLegalMoves(pos, parentMoveId: nil)
+            _ = legalMoveGen.generateLegalMoves(Position.start, parentMoveId: nil)
         }
     }
 
@@ -33,7 +30,7 @@ final class BenchmarkTest: XCTestCase {
         let posEvaluator = PositionEvaluatorImpl()
 
         measure {
-            _ = posEvaluator.evaluate(pos)
+            _ = posEvaluator.evaluate(Position.start)
         }
     }
 
@@ -43,7 +40,7 @@ final class BenchmarkTest: XCTestCase {
             Task {
                 let engine: Engine = EngineImpl(
                     configuration: EngineConfiguration(maxDepth: 1),
-                    gameState: GameState(position: pos)
+                    gameState: GameState(position: Position.start)
                 )
                 _ = await engine.calculateBestMove()
                 expectation.fulfill()
@@ -58,7 +55,7 @@ final class BenchmarkTest: XCTestCase {
             Task {
                 let engine: Engine = EngineImpl(
                     configuration: EngineConfiguration(maxDepth: 2),
-                    gameState: GameState(position: pos)
+                    gameState: GameState(position: Position.start)
                 )
                 _ = await engine.calculateBestMove()
                 expectation.fulfill()
@@ -75,7 +72,7 @@ final class BenchmarkTest: XCTestCase {
             Task {
                 let engine: Engine = EngineImpl(
                     configuration: EngineConfiguration(maxDepth: 3),
-                    gameState: GameState(position: pos)
+                    gameState: GameState(position: Position.start)
                 )
                 _ = await engine.calculateBestMove()
                 expectation.fulfill()
@@ -92,12 +89,12 @@ final class BenchmarkTest: XCTestCase {
             Task {
                 let engine: Engine = EngineImpl(
                     configuration: EngineConfiguration(maxDepth: 4),
-                    gameState: GameState(position: pos)
+                    gameState: GameState(position: Position.start)
                 )
                 _ = await engine.calculateBestMove()
                 expectation.fulfill()
             }
-            wait(for: [expectation], timeout: 300)
+            wait(for: [expectation], timeout: 200)
         }
     }
 }
