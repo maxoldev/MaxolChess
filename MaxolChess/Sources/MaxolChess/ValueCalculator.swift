@@ -5,7 +5,7 @@
 //  Created by Maksim Solovev on 17.08.2025.
 //
 
-public struct ValueCalculation: Equatable {
+public struct ValueCalculation: Equatable, Sendable {
     public let white: PieceValue
     public let black: PieceValue
 

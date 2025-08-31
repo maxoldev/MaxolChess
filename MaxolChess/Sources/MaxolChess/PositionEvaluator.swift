@@ -5,8 +5,8 @@
 //  Created by Maksim Solovev on 17.08.2025.
 //
 
-public struct PositionEvaluation {
-    public enum State {
+public struct PositionEvaluation: Sendable {
+    public enum State: Sendable {
         case normal
         case kingChecked
         case kingCheckmated

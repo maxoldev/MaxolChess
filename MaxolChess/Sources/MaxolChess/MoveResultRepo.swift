@@ -5,7 +5,7 @@
 //  Created by Maksim Solovev on 17.08.2025.
 //
 
-public struct MoveResult {
+public struct MoveResult: Sendable {
     public let side: PieceColor
 //    public let moveId: MoveId
 //    public let parentMoveId: MoveId?
@@ -19,15 +19,25 @@ public struct MoveResult {
 //    public var maxPotentialLoss: PieceValue
 }
 
-actor MoveResultRepo {
-    enum MoveResultRepo: Error {
+public protocol MoveResultRepo: Sendable {
+    func bestMove() async -> Move?
+    func set(zeroDepthMoves: [any Move]) async
+    func add(moveResults: [MoveResult]) async
+    func clear() async
+    func itemCount() async -> Int
+}
+
+public actor MoveResultRepoImpl: MoveResultRepo {
+    public enum MoveResultRepo: Error {
         case moveResultNotFound
     }
-
     private var moveResults = [MoveId: MoveResult]()
     private var zeroDepthMoves = [any Move]()
 
-    func bestMove() async -> Move? {
+    public init() {
+    }
+    
+    public func bestMove() async -> Move? {
         let zeroDepthMoveResults = zeroDepthMoves.map { moveResults[$0.id]! }
         let checkmates = zeroDepthMoveResults.filter { $0.isEnemyKingCheckmated }
         if let firstCheckmate = checkmates.first?.move {
@@ -38,18 +48,22 @@ actor MoveResultRepo {
         return move
     }
 
-    func set(zeroDepthMoves: [any Move]) async {
+    public func set(zeroDepthMoves: [any Move]) async {
         self.zeroDepthMoves = zeroDepthMoves
     }
 
-    func add(moveResults: [MoveResult]) async {
+    public func add(moveResults: [MoveResult]) async {
         moveResults.forEach {
             self.moveResults[$0.move.id] = $0
         }
     }
     
-    func clear() {
+    public func clear() async {
         zeroDepthMoves.removeAll()
         moveResults.removeAll()
+    }
+
+    public func itemCount() async -> Int {
+        moveResults.count
     }
 }

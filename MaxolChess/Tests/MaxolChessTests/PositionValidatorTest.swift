@@ -7,7 +7,7 @@
 
 import Testing
 
-@testable import MaxolChess
+import MaxolChess
 
 struct PositionValidatorTest {
     @Test func valid() async throws {

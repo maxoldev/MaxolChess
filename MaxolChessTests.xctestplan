@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "3004DD34-CE8C-4BC4-AE73-C3043DF36D27",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:..\/MaxolChess",
+        "identifier" : "MaxolChessTests",
+        "name" : "MaxolChessTests"
+      }
+    }
+  ],
+  "version" : 1
+}

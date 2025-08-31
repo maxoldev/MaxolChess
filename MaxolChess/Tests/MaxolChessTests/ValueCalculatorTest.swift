@@ -7,7 +7,7 @@
 
 import Testing
 
-@testable import MaxolChess
+import MaxolChess
 
 struct ValueCalculatorTest {
     @Test func defaultValue() async throws {

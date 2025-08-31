@@ -51,19 +51,24 @@ public final class EngineImpl: Engine {
     private let legalMoveGenerator: LegalMoveGenerator
 
     private var currentState: GameState
-    private let moveResultRepo = MoveResultRepo()
+    private let moveResultRepo: MoveResultRepo
+    private let evaluationCache: EvaluationCache
 
     public init(
         configuration: EngineConfiguration = EngineConfiguration(),
         valueCalculator: ValueCalculator = ValueCalculatorImpl(),
         positionEvaluator: PositionEvaluator = PositionEvaluatorImpl(),
         legalMoveGenerator: LegalMoveGenerator = LegalMoveGeneratorImpl(),
+        moveResultRepo: MoveResultRepo = MoveResultRepoImpl(),
+        evaluationCache: EvaluationCache = EvaluationCacheImpl(),
         gameState: GameState = GameState(position: Position.start)
     ) {
         self.configuration = configuration
         self.valueCalculator = valueCalculator
         self.positionEvaluator = positionEvaluator
         self.legalMoveGenerator = legalMoveGenerator
+        self.moveResultRepo = moveResultRepo
+        self.evaluationCache = evaluationCache
         self.currentState = gameState
     }
 
@@ -77,7 +82,7 @@ public final class EngineImpl: Engine {
     }
 
     public func calculateBestMove() async -> Move? {
-        logDebug(currentState.position, category: .engine)
+        logDebug("Analyzed position:", currentState.position, category: .engine)
         let bench = Benchmark()
 
         await moveResultRepo.clear()
@@ -87,11 +92,22 @@ public final class EngineImpl: Engine {
             parentMoveId: nil,
             currentDepth: 0,
             configuration: configuration,
-            moveResultRepo: moveResultRepo
+            moveResultRepo: moveResultRepo,
+            evaluationCache: evaluationCache
         )
 
         let bestMove = await moveResultRepo.bestMove()
-        logDebug("BEST MOVE:", bestMove, bench.checkpoint(), category: .engine)
+
+        let analyzedPositionCount = await moveResultRepo.itemCount()
+        let cachedPositionCount = await evaluationCache.itemCount()
+        logDebug(
+            "BEST MOVE:",
+            bestMove,
+            bench.checkpoint(),
+            "\(analyzedPositionCount) analyzed positions, \(cachedPositionCount) cached positions",
+            category: .engine
+        )
+
         return bestMove
     }
 
@@ -114,14 +130,15 @@ public final class EngineImpl: Engine {
         parentMoveId: MoveId?,
         currentDepth: Int,
         configuration: EngineConfiguration,
-        moveResultRepo: MoveResultRepo
+        moveResultRepo: MoveResultRepo,
+        evaluationCache: EvaluationCache
     ) async {
         if currentDepth >= configuration.maxDepth {
             return
         }
 
-        logDebug("Analysis... Depth = \(currentDepth + 1) halfmoves")
-        //logDebug(position)
+        logDebug("Analysis... Depth = \(currentDepth + 1) halfmoves", category: .engine)
+        //logDebug(position, category: .engine)
 
         let sideToMove = position.sideToMove
         let legalMoveGenerator = LegalMoveGeneratorImpl()
@@ -143,7 +160,14 @@ public final class EngineImpl: Engine {
             // TODO: handle promotion capture
             let gain = (move as? CaptureMove)?.captured.type.defaultValue ?? 0
 
-            let evaluation = positionEvaluator.evaluate(posAfterMove)
+            let evaluation: PositionEvaluation
+            let posFEN = posAfterMove.fenBoardString
+            if let cachedEvaluation = await evaluationCache.get(posFEN) {
+                evaluation = cachedEvaluation
+            } else {
+                evaluation = positionEvaluator.evaluate(posAfterMove)
+                await evaluationCache.set(evaluation, for: posFEN)
+            }
 
             switch evaluation.state {
             case .kingCheckmated:
@@ -231,7 +255,8 @@ public final class EngineImpl: Engine {
                         parentMoveId: move.id,
                         currentDepth: currentDepth + 1,
                         configuration: configuration,
-                        moveResultRepo: moveResultRepo
+                        moveResultRepo: moveResultRepo,
+                        evaluationCache: evaluationCache
                     )
                 }
             }

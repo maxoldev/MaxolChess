@@ -7,7 +7,7 @@
 
 import Testing
 
-@testable import MaxolChess
+import MaxolChess
 
 struct CoordinateTest {
     @Test func test() async throws {

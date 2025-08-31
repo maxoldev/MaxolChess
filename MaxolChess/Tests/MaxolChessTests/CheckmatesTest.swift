@@ -7,7 +7,7 @@
 
 import Testing
 
-@testable import MaxolChess
+import MaxolChess
 
 struct CheckmatesTest {
     @Test func checkmates() async throws {

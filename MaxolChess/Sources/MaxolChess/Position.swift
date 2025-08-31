@@ -143,7 +143,7 @@ extension Position: CustomStringConvertible {
     }
 
     public func prettyPrinted(unicode: Bool = Config.unicodePieceNotation) -> String {
-        "\(board.prettyPrinted(unicode: unicode))\n\(sideToMove) to move"
+        "\(board.prettyPrinted(unicode: unicode))\n\(fenStateString)"
     }
 }
 
@@ -153,8 +153,6 @@ extension Position {
 
 extension Position {
     /**
-    FEN structure is strictly definded, so we can use magic numbers here.
-    
      A FEN string consists of six fields, separated by spaces:
      1. Piece Placement
      - Ranks are listed from 8th to 1st, separated by /.
@@ -186,6 +184,7 @@ extension Position {
     rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
      */
     public init?(fen: String) {
+        // FEN structure is strictly definded, so we can use magic numbers here.
         let fields = fen.split(separator: " ").map(String.init)
 
         guard fields.count == 6 else { return nil }
@@ -224,6 +223,14 @@ extension Position {
     }
 
     public var fenString: String {
+        "\(board.fenString) \(fenStateString)"
+    }
+
+    public var fenBoardString: String {
+        return board.fenString
+    }
+
+    public var fenStateString: String {
         var castlingRightsString = ""
         if castlingRights[.white]?.contains(.kingSide) == true {
             castlingRightsString.append("K")
@@ -242,8 +249,8 @@ extension Position {
         }
 
         let enPassantString = enPassantTargetCoordinate.map(String.init) ?? "-"
-        
+
         return
-            "\(board.fenString) \(sideToMove.rawValue) \(castlingRightsString) \(enPassantString) \(halfMoveCountSinceLastCaptureOrPawnMove) \(fullMoveIndex)"
+            "\(sideToMove.rawValue) \(castlingRightsString) \(enPassantString) \(halfMoveCountSinceLastCaptureOrPawnMove) \(fullMoveIndex)"
     }
 }

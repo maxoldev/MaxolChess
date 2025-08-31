@@ -7,7 +7,7 @@
 
 import XCTest
 
-@testable import MaxolChess
+import MaxolChess
 
 final class StartPositionTest: XCTestCase {
     func testGenerateAllMoves() throws {
@@ -65,9 +65,7 @@ final class StartPositionTest: XCTestCase {
     }
 
     func testBestMoveDepth3() {
-        let options = XCTMeasureOptions()
-        options.iterationCount = 4
-        measure(options: options) {
+        measure {
             let expectation = XCTestExpectation()
             Task {
                 let engine: Engine = EngineImpl(
@@ -82,9 +80,7 @@ final class StartPositionTest: XCTestCase {
     }
 
     func testBestMoveDepth4() {
-        let options = XCTMeasureOptions()
-        options.iterationCount = 1
-        measure(options: options) {
+        measure {
             let expectation = XCTestExpectation()
             Task {
                 let engine: Engine = EngineImpl(

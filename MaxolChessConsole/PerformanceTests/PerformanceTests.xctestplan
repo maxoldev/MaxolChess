@@ -1,7 +1,7 @@
 {
   "configurations" : [
     {
-      "id" : "A4104A7F-DF38-4290-A60C-C471DF70788F",
+      "id" : "17CA449B-1E90-4693-BE93-999B87F678DA",
       "name" : "Configuration 1",
       "options" : {
 
@@ -14,10 +14,6 @@
   "testTargets" : [
     {
       "parallelizable" : false,
-      "skippedTests" : [
-        "Position5Test\/testBestMoveDepth4()",
-        "StartPositionTest\/testBestMoveDepth4()"
-      ],
       "target" : {
         "containerPath" : "container:MaxolChessConsole.xcodeproj",
         "identifier" : "502B7FFD2E6434140008FC7F",
@@ -25,5 +21,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 1
 }

@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "88AEF224-9788-4835-AC70-79CA662A5109",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:MaxolChessConsole.xcodeproj",
+        "identifier" : "502B7FFD2E6434140008FC7F",
+        "name" : "PerformanceTests"
+      }
+    }
+  ],
+  "version" : 1
+}

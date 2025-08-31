@@ -30,11 +30,8 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:../MaxolChessLogic.xctestplan"
+            reference = "container:../MaxolChessTests.xctestplan"
             default = "YES">
-         </TestPlanReference>
-         <TestPlanReference
-            reference = "container:../MaxolChessPerformance.xctestplan">
          </TestPlanReference>
       </TestPlans>
    </TestAction>
