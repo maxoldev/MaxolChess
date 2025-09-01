@@ -61,74 +61,6 @@ public struct Position: Equatable, Sendable {
         }
     }
 
-    public func applied(move: Move) -> Position {
-        var newBoard = board
-        var newPosition = self
-
-        newPosition.halfMoveCountSinceLastCaptureOrPawnMove += 1
-        if self.sideToMove == .black {
-            // Increments after Black's moves
-            newPosition.fullMoveIndex += 1
-        }
-
-        switch move {
-        case let reposition as RepositionMove:
-            assert(reposition.piece.color == sideToMove)
-            newBoard[reposition.to] = newBoard[reposition.from]
-            newBoard[reposition.from] = nil
-            if reposition.piece.type == .king {
-                newPosition.castlingRights[reposition.piece.color]!.removeAll()
-            }
-            if reposition.piece.type == .pawn {
-                newPosition.halfMoveCountSinceLastCaptureOrPawnMove = 0
-            }
-
-        case let capture as CaptureMove:
-            assert(capture.piece.color == sideToMove)
-            newBoard[capture.to] = newBoard[capture.from]
-            newBoard[capture.from] = nil
-            newPosition.halfMoveCountSinceLastCaptureOrPawnMove = 0
-
-        case let promotion as PromotionMove:
-            assert(promotion.piece.color == sideToMove)
-            newBoard[promotion.to] = promotion.newPiece
-            newBoard[promotion.from] = nil
-            newPosition.halfMoveCountSinceLastCaptureOrPawnMove = 0
-
-        case let castling as CastlingMove:
-            // TODO: throw an error when needed
-            let kingCoord = newPosition.kingCoordinate(sideToMove)!
-            newPosition.castlingRights[sideToMove]!.removeAll()
-
-            let rookCoord: Coordinate
-            let newKingCoord: Coordinate
-            let newRookCoord: Coordinate
-            switch castling.side {
-            case .kingSide:
-                rookCoord = kingCoord.rightmost
-                newKingCoord = kingCoord.advancedBy(2, 0)!
-                newRookCoord = newKingCoord.advancedBy(-1, 0)!
-
-            case .queenSide:
-                rookCoord = kingCoord.leftmost
-                newKingCoord = kingCoord.advancedBy(-2, 0)!
-                newRookCoord = newKingCoord.advancedBy(1, 0)!
-            }
-            newBoard[kingCoord] = nil
-            newBoard[rookCoord] = nil
-            newBoard[newKingCoord] = Piece(sideToMove, .king)
-            newBoard[newRookCoord] = Piece(sideToMove, .rook)
-
-        default:
-            fatalError("Not implemented: \(move)")
-        }
-
-        newPosition.board = newBoard
-        newPosition.sideToMove = sideToMove.opposite
-
-        return newPosition
-    }
-
     public var opposite: Position {
         var newPosition = self
         newPosition.sideToMove = sideToMove.opposite
@@ -307,5 +239,97 @@ extension Position {
 
         return
             "\(sideToMove.rawValue) \(castlingRightsString) \(enPassantString) \(halfMoveCountSinceLastCaptureOrPawnMove) \(fullMoveIndex)"
+    }
+}
+
+extension Position {
+    public func applied(move: Move) -> Position {
+        var newBoard = board
+        var newPosition = self
+
+        newPosition.halfMoveCountSinceLastCaptureOrPawnMove += 1
+        if self.sideToMove == .black {
+            // Increments after Black's moves
+            newPosition.fullMoveIndex += 1
+        }
+
+        switch move {
+        case let reposition as RepositionMove:
+            assert(reposition.piece.color == sideToMove)
+            newBoard[reposition.to] = newBoard[reposition.from]
+            newBoard[reposition.from] = nil
+            if reposition.piece.type == .king {
+                newPosition.castlingRights[reposition.piece.color]!.removeAll()
+                newPosition.searchAndSetKingCoordinates()
+            }
+            if reposition.piece.type == .rook {
+                if reposition.from.x == 0 {
+                    newPosition.castlingRights[reposition.piece.color]!.remove(.queenSide)
+                } else if reposition.from.x == Const.boardSize - 1 {
+                    newPosition.castlingRights[reposition.piece.color]!.remove(.kingSide)
+                }
+            }
+            if reposition.piece.type == .pawn {
+                newPosition.halfMoveCountSinceLastCaptureOrPawnMove = 0
+            }
+
+        case let capture as CaptureMove:
+            assert(capture.piece.color == sideToMove)
+            newBoard[capture.to] = newBoard[capture.from]
+            newBoard[capture.from] = nil
+            newPosition.halfMoveCountSinceLastCaptureOrPawnMove = 0
+            if capture.piece.type == .king {
+                newPosition.castlingRights[capture.piece.color]!.removeAll()
+                newPosition.searchAndSetKingCoordinates()
+            }
+            if capture.piece.type == .rook {
+                if capture.from.x == 0 {
+                    newPosition.castlingRights[capture.piece.color]!.remove(.queenSide)
+                } else if capture.from.x == Const.boardSize - 1 {
+                    newPosition.castlingRights[capture.piece.color]!.remove(.kingSide)
+                }
+            }
+
+        case let promotion as PromotionMove:
+            assert(promotion.piece.color == sideToMove)
+            newBoard[promotion.to] = promotion.newPiece
+            newBoard[promotion.from] = nil
+            newPosition.halfMoveCountSinceLastCaptureOrPawnMove = 0
+
+        case let castling as CastlingMove:
+            // TODO: throw an error when needed
+            assert(!newPosition.castlingRights[sideToMove]!.isEmpty)
+
+            let kingCoord = newPosition.kingCoordinate(sideToMove)!
+            newPosition.castlingRights[sideToMove]!.removeAll()
+
+            let rookCoord: Coordinate
+            let newKingCoord: Coordinate
+            let newRookCoord: Coordinate
+            switch castling.side {
+            case .kingSide:
+                rookCoord = kingCoord.rightmost
+                newKingCoord = kingCoord.advancedBy(2, 0)!
+                newRookCoord = newKingCoord.advancedBy(-1, 0)!
+
+            case .queenSide:
+                rookCoord = kingCoord.leftmost
+                newKingCoord = kingCoord.advancedBy(-2, 0)!
+                newRookCoord = newKingCoord.advancedBy(1, 0)!
+            }
+            newBoard[kingCoord] = nil
+            newBoard[rookCoord] = nil
+            newBoard[newKingCoord] = Piece(sideToMove, .king)
+            newBoard[newRookCoord] = Piece(sideToMove, .rook)
+            newPosition.searchAndSetKingCoordinates()
+
+        default:
+            fatalError("Not implemented: \(move)")
+        }
+
+        newPosition.board = newBoard
+        newPosition.sideToMove = sideToMove.opposite
+
+        return newPosition
     }
 }
