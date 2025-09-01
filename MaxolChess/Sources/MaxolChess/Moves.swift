@@ -55,7 +55,7 @@ public struct CastlingMove: Move {
 
 extension CastlingMove: CustomStringConvertible {
     public var description: String {
-        "\(side)\(side == .kingSide ? "0—0" : "0—0—0")\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "←"+$0.shortString } ?? "")" : "")"
+        "\(side)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "←"+$0.shortString } ?? "")" : "")"
     }
 }
 
