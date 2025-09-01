@@ -5,9 +5,8 @@
 //  Created by Maksim Solovev on 18.08.2025.
 //
 
-import Testing
-
 import MaxolChess
+import Testing
 
 struct PositionTest {
     @Test func initialization() async throws {
@@ -54,5 +53,130 @@ struct PositionTest {
         #expect(Position(fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 0 1") == nil)
         #expect(Position(fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0") == nil)
         #expect(Position(fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 1") == nil)
+    }
+
+    @Test func multiline() async throws {
+        #expect(
+            try #require(
+                Position(
+                    multiline: """
+                          ┌───────────────┐
+                        8  r n b q k b n r
+                        7  p p p p p p p p
+                        6  . . . . . . . .
+                        5  . . . . . . . .
+                        4  . . . . . . . .
+                        3  . . . . . . . .
+                        2  P P P P P P P P
+                        1  R N B Q K B N R
+                          └───────────────┘
+                           a b c d e f g h
+                        w KQkq - 0 1
+                        """
+                )
+            ) == Position.start
+        )
+
+        #expect(
+            try #require(
+                Position(
+                    multiline: """
+
+
+                          ┌───────────────┐
+                        8  r n b q k b n r
+                        7  p p p p p p p p
+                        6  . . . . . . . .
+                        5  . . . . . . . .
+                        4  . . . . . . . .
+                        3  . . . . . . . .
+                        2  P P P P P P P P
+                        1  R N B Q K B N R
+                          └───────────────┘
+                           a b c d e f g h
+                        w KQkq - 0 1
+                        """
+                )
+            ) == Position.start
+        )
+        #expect(
+            try #require(
+                Position(
+                    multiline: """
+                          ┌───────────────┐
+                        8  r n b q k b n r
+                        7  p p p p p p p p
+                        6  . . . . . . . .
+                        5  . . . . . . . .
+                        4  . . . . . . . .
+                        3  . . . . . . . .
+                        2  P P P P P P P P
+                        1  R N B Q K B N R
+                          └───────────────┘
+                           a b c d e f g h
+
+
+                        w KQkq - 0 1
+                        """
+                )
+            ) == Position.start
+        )
+
+        #expect(
+            try #require(
+                Position(
+                    multiline: """
+                          ┌───────────────┐
+                        8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+                        7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
+                        6  . . . . . . . .
+                        5  . . . . . . . .
+                        4  . . . . . . . .
+                        3  . . . . . . . .
+                        2  ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+                        1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+                          └───────────────┘
+                           a b c d e f g h
+                        w KQkq - 0 1
+                        """
+                )
+            ) == Position.start
+        )
+    }
+
+    @Test func invalidMultiline() async throws {
+        #expect(
+            Position(
+                multiline: """
+                      ┌───────────────┐
+                    8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+                    7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
+                    6  . . . . . . . .
+                    5  . . . . . . . .
+                    4  . . . . . . . .
+                    3  . . . . . . . .
+                    2  ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+                    1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+                      └───────────────┘
+                       a b c d e f g h
+                    """
+            ) == nil
+        )
+
+        #expect(
+            Position(
+                multiline: """
+                      ┌───────────────┐
+                    8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+                    7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
+                    6  . . . . . . . .
+                    2  ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+                    1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+                      └───────────────┘
+                       a b c d e f g h
+                    w KQkq - 0 1
+                    """
+            ) == nil
+        )
     }
 }

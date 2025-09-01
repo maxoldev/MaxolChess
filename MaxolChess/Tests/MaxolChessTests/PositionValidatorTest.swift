@@ -19,7 +19,7 @@ struct PositionValidatorTest {
             PositionValidatorImpl().validate(
                 Position(
                     Board(
-                        prettyPrinted: """
+                        multiline: """
                               ┌───────────────┐
                             8  ♔ . ♛ . . . . .
                             7  . . . . . . . .

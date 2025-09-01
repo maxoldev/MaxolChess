@@ -15,7 +15,7 @@ struct CheckmatesTest {
         let evaluation = positionEval.evaluate(
             Position(
                 Board(
-                    prettyPrinted: """
+                    multiline: """
                           ┌───────────────┐
                         8  . ♔ ♖ . . . . ♖
                         7  ♛ ♙ ♙ . . . . .

@@ -9,9 +9,11 @@ public typealias Square = Piece?
 
 /// The game is played on a square board of rows (called ranks, coordinate Y) and columns (called files, coordinate X)
 public struct Board: Equatable, Sendable {
+    public static let start = Board(fenBoardSubstring: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")!
+
     private var squares: [Square]
 
-    public init(squares: [Square] = Array(repeating: nil, count: Const.boardSize * Const.boardSize)) {
+    public init(squares: [Square] = Array(repeating: nil, count: Const.boardSquareCount)) {
         self.squares = squares
     }
 
@@ -45,20 +47,14 @@ public struct Board: Equatable, Sendable {
     }
 }
 
-extension Board: Sequence {
-    public func makeIterator() -> AnyIterator<(Square, Coordinate)> {
-        var idx = 0
-        return AnyIterator {
-            guard idx < squares.count else { return nil }
-            defer { idx += 1 }
-            return (squares[idx], Coordinate(idx))
-        }
+extension Board: CustomStringConvertible {
+    public var description: String {
+        self.multiline()
     }
 }
 
+// MARK: - FEN & multiline
 extension Board {
-    public static let start = Board(fenBoardSubstring: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")!
-
     public init?(fenBoardSubstring: String) {
         let rankStrings = fenBoardSubstring.split(separator: "/").map(String.init)
         guard rankStrings.count == Const.boardSize else { return nil }
@@ -74,7 +70,7 @@ extension Board {
         self.init(squares: rankArray.flatMap { $0 })
     }
 
-    static func rank(fenSubstring: String) -> [Square]? {
+    private static func rank(fenSubstring: String) -> [Square]? {
         var rankSquares: [Square] = []
 
         for char in fenSubstring {
@@ -98,7 +94,42 @@ extension Board {
         return rankSquares
     }
 
-    public var ranks: [[Square]] {
+    public func multiline(unicode: Bool = Config.unicodePieceNotation) -> String {
+        let main: String = ranks.enumerated().reversed().map { index, rank in
+            "\(index + 1)  " + rank.map { $0.map { $0.char(unicode: unicode) } ?? "." }.joined(separator: " ") + " "
+        }.joined(separator: "\n")
+
+        return """
+            
+              ┌───────────────┐
+            \(main)
+              └───────────────┘
+               a b c d e f g h 
+            """
+    }
+
+    public init?(multiline: String) {
+        guard let openBoardIdx = multiline.firstIndex(of: "┌"), let closeBoardIdx = multiline.firstIndex(of: "┘") else {
+            print("┌ and ┘ not found")
+            return nil
+        }
+        let multiline = multiline[openBoardIdx...closeBoardIdx].filter { "pnbrqkPNBRQK♙♘♗♖♕♔♟♞♝♜♛♚.\n".contains($0) }
+        let rankStrings = multiline.split(separator: "\n").map(String.init)
+        guard rankStrings.count == Const.boardSize else { return nil }
+
+        var squares = [Square]()
+        for (rankIndex, rankString) in rankStrings.reversed().enumerated() {
+            guard rankString.count == Const.boardSize else {
+                print("Invalid square count in rank \(rankIndex)")
+                return nil
+            }
+            squares.append(contentsOf: rankString.map { Piece($0) })
+        }
+        
+        self.init(squares: squares)
+    }
+
+    private var ranks: [[Square]] {
         stride(from: 0, to: Const.boardSize, by: 1).map { (rankIndex) -> [Square] in
             return Array(squares[rankIndex * Const.boardSize..<rankIndex * Const.boardSize + Const.boardSize])
         }
@@ -126,46 +157,5 @@ extension Board {
             rankStrings.append(fenRank)
         }
         return String(rankStrings.joined(separator: "/"))
-    }
-}
-
-extension Board: CustomStringConvertible {
-    public var description: String {
-        self.prettyPrinted()
-    }
-
-    public func prettyPrinted(unicode: Bool = Config.unicodePieceNotation) -> String {
-        let main: String = ranks.enumerated().reversed().map { index, rank in
-            "\(index + 1)  " + rank.map { $0.map { $0.char(unicode: unicode) } ?? "." }.joined(separator: " ") + " "
-        }.joined(separator: "\n")
-
-        return """
-            
-              ┌───────────────┐
-            \(main)
-              └───────────────┘
-               a b c d e f g h 
-            """
-    }
-
-    public init?(prettyPrinted: String) {
-        guard let openBoardIdx = prettyPrinted.firstIndex(of: "┌"), let closeBoardIdx = prettyPrinted.firstIndex(of: "┘") else {
-            print("┌ and ┘ not found")
-            return nil
-        }
-        let prettyPrinted = prettyPrinted[openBoardIdx...closeBoardIdx].filter { "pnbrqkPNBRQK♙♘♗♖♕♔♟♞♝♜♛♚.\n".contains($0) }
-        let rankStrings = prettyPrinted.split(separator: "\n").map(String.init)
-        guard rankStrings.count == Const.boardSize else { return nil }
-
-        var squares = [Square]()
-        for (rankIndex, rankString) in rankStrings.reversed().enumerated() {
-            guard rankString.count == Const.boardSize else {
-                print("Invalid square count in rank \(rankIndex)")
-                return nil
-            }
-            squares.append(contentsOf: rankString.map { Piece($0) })
-        }
-        
-        self.init(squares: squares)
     }
 }

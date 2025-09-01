@@ -26,7 +26,7 @@ struct PositionEvaluatorTest {
     @Test func checkmate1() async throws {
         let pos = Position(
             Board(
-                prettyPrinted: """
+                multiline: """
                       ┌───────────────┐
                     8  . . . . . . . . 
                     7  . . ♗ . . . . . 
@@ -48,7 +48,7 @@ struct PositionEvaluatorTest {
     @Test func checkmate2() async throws {
         let pos = Position(
             Board(
-                prettyPrinted: """
+                multiline: """
                       ┌───────────────┐
                     8  ♜ . . ♛ ♚ ♝ ♞ ♜ 
                     7  . . ♟ ♟ ♟ ♙ ♟ ♟ 

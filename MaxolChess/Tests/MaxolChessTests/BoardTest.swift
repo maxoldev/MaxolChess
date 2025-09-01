@@ -39,11 +39,11 @@ struct BoardTest {
         #expect(Board(fenBoardSubstring: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR") == nil)
     }
 
-    @Test func prettyPrinted() async throws {
+    @Test func multiline() async throws {
         #expect(
             try #require(
                 Board(
-                    prettyPrinted: """
+                    multiline: """
                           ┌───────────────┐
                         8  r n b q k b n r
                         7  p p p p p p p p
@@ -63,7 +63,7 @@ struct BoardTest {
         #expect(
             try #require(
                 Board(
-                    prettyPrinted: """
+                    multiline: """
                           ┌───────────────┐
                         8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 
                         7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟ 
@@ -82,7 +82,7 @@ struct BoardTest {
 
         #expect(
             Board(
-                prettyPrinted: """
+                multiline: """
                       ┌───────────────┐
                     8  . ♔ ♖ . . . . ♖
                     7  ♛ ♙ ♙ . . . . .
@@ -100,7 +100,7 @@ struct BoardTest {
 
         #expect(
             Board(
-                prettyPrinted: """
+                multiline: """
                       ┌───────────────┐
                     8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 
                     7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟ 
@@ -115,7 +115,7 @@ struct BoardTest {
 
         #expect(
             Board(
-                prettyPrinted: """
+                multiline: """
                       ───────────────┐
                     8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 
                     7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟ 
@@ -133,7 +133,7 @@ struct BoardTest {
 
         #expect(
             Board(
-                prettyPrinted: """
+                multiline: """
                       ┌───────────────┐
                     8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 
                     7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟ 

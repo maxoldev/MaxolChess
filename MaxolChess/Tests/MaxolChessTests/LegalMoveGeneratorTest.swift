@@ -15,7 +15,7 @@ struct LegalMoveGeneratorTest {
     @Test func legalMoves() async throws {
         let pos = Position(
             Board(
-                prettyPrinted: """
+                multiline: """
                       ┌───────────────┐
                     8  . . . . . . . .
                     7  . . . . . ♟ . .

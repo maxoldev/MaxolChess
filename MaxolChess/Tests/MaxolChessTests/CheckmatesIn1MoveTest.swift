@@ -23,7 +23,7 @@ struct CheckmatesIn1MoveTest {
                 GameState(
                     position: Position(
                         Board(
-                            prettyPrinted: """
+                            multiline: """
                                   ┌───────────────┐
                                 8  ♜ . . ♛ ♚ ♝ ♞ ♜ 
                                 7  . . ♟ ♟ ♟ . ♟ ♟ 
@@ -50,7 +50,7 @@ struct CheckmatesIn1MoveTest {
             GameState(
                 position: Position(
                     Board(
-                        prettyPrinted: """
+                        multiline: """
                               ┌───────────────┐
                             8  . . . . . . ♖ . 
                             7  . . ♗ . . . . . 
