@@ -99,6 +99,7 @@ struct PositionTest {
                 )
             ) == Position.start
         )
+        
         #expect(
             try #require(
                 Position(

@@ -5,9 +5,8 @@
 //  Created by Maksim Solovev on 30.08.2025.
 //
 
-import Testing
-
 import MaxolChess
+import Testing
 
 struct AttackCheckerTest {
     let attackChecker = AttackCheckerImpl()

@@ -5,9 +5,8 @@
 //  Created by Maksim Solovev on 19.08.2025.
 //
 
-import Testing
-
 import MaxolChess
+import Testing
 
 struct CheckmatesTest {
     @Test func checkmates() async throws {

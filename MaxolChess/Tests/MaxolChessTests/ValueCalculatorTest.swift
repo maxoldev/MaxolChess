@@ -5,9 +5,8 @@
 //  Created by Maksim Solovev on 18.08.2025.
 //
 
-import Testing
-
 import MaxolChess
+import Testing
 
 struct ValueCalculatorTest {
     @Test func defaultValue() async throws {

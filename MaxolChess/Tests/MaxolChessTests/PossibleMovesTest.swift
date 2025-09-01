@@ -5,9 +5,8 @@
 //  Created by Maksim Solovev on 18.08.2025.
 //
 
-import Testing
-
 import MaxolChess
+import Testing
 
 struct PossibleMovesTest {
     let moveGen = PossibleMoveGeneratorImpl()
@@ -54,7 +53,7 @@ struct PossibleMovesTest {
     }
 
     private var expectedBishopMovesFromE5: [Coordinate] = [
-        "d6", "c7", "b8", "f6", "g7", "h8", "f4", "g3", "h2", "d4", "c3", "b2", "a1"
+        "d6", "c7", "b8", "f6", "g7", "h8", "f4", "g3", "h2", "d4", "c3", "b2", "a1",
     ]
 
     @Test func bishopMovesOnEmptyBoard() async throws {
