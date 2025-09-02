@@ -5,7 +5,7 @@
 //  Created by Maksim Solovev on 30.08.2025.
 //
 
-public protocol AttackChecker {
+public protocol AttackChecker: Sendable {
     func isCoordinate(_ coordinate: Coordinate, attackedBy side: PieceColor, board: Board) -> Bool
 }
 

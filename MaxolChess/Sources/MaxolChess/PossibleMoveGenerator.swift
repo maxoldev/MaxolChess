@@ -5,7 +5,7 @@
 //  Created by Maksim Solovev on 16.08.2025.
 //
 
-public protocol PossibleMoveGenerator {
+public protocol PossibleMoveGenerator: Sendable {
     /// Including not possible due to check to own king
     func generateAllMoves(_ position: Position) -> [Move]
     /// Including not possible due to check to own king

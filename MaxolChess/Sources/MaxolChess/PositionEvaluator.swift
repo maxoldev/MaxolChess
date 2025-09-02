@@ -17,7 +17,7 @@ public struct PositionEvaluation: Sendable {
     public let values: ValueCalculation
 }
 
-public protocol PositionEvaluator: AnyObject {
+public protocol PositionEvaluator: AnyObject, Sendable {
     func evaluate(_ position: Position) -> PositionEvaluation
 }
 

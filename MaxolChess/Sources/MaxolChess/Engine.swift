@@ -92,6 +92,8 @@ public final class EngineImpl: Engine {
             parentMoveId: nil,
             currentDepth: 0,
             configuration: configuration,
+            positionEvaluator: positionEvaluator,
+            legalMoveGenerator: legalMoveGenerator,
             decider: decider,
             evaluationCache: evaluationCache
         )
@@ -132,6 +134,8 @@ public final class EngineImpl: Engine {
         parentMoveId: MoveId?,
         currentDepth: Int,
         configuration: EngineConfiguration,
+        positionEvaluator: PositionEvaluator,
+        legalMoveGenerator: LegalMoveGenerator,
         decider: Decider,
         evaluationCache: EvaluationCache
     ) async {
@@ -142,137 +146,141 @@ public final class EngineImpl: Engine {
         //logDebug("Analysis... Depth = \(currentDepth + 1) halfmoves", category: .engine)
         //logDebug(position, category: .engine)
 
-        let sideToMove = position.sideToMove
-        let legalMoveGenerator = LegalMoveGeneratorImpl()
-        let positionEvaluator = PositionEvaluatorImpl()
-        let moves = legalMoveGenerator.generateLegalMoves(position, parentMoveId: parentMoveId)
+        var movesToAnalyzeFurther = [(moveId: MoveId, posAfterMove: Position)]()
 
-        if currentDepth == 0 {
-            await decider.set(zeroDepthMoves: moves)
-        }
+        do {
+            let sideToMove = position.sideToMove
 
-        var movesToAnalyzeFurther = [(move: Move, posAfterMove: Position)]()
-        var moveResults = [MoveResult]()
-        var wasCheckmateFound = false
-        let valueBeforeMove = ValueCalculatorImpl().calculate(position)[sideToMove]
+            let moves = legalMoveGenerator.generateLegalMoves(position, parentMoveId: parentMoveId)
 
-        for move in moves {
-//            await Task.yield()
-
-            let posAfterMove = position.applied(move: move)
-
-            let capturedValue: PieceValue
-            if let capturedValueDuringMove = (move as? CaptureMove)?.captured.type.defaultValue {
-                capturedValue = capturedValueDuringMove
-            } else if let capturedValueDuringMove = (move as? PromotionMove)?.captured?.type.defaultValue {
-                capturedValue = capturedValueDuringMove
-            } else {
-                capturedValue = 0
+            if currentDepth == 0 {
+                await decider.set(zeroDepthMoves: moves)
             }
 
-            let evaluation: PositionEvaluation
+            movesToAnalyzeFurther.reserveCapacity(moves.count)
+            var moveResults = [MoveResult]()
+            moveResults.reserveCapacity(moves.count)
+            var wasCheckmateFound = false
+            let valueBeforeMove = ValueCalculatorImpl().calculate(position)[sideToMove]
 
-            let posFEN = posAfterMove.fenBoardString
-            if let cachedEvaluation = await evaluationCache.get(posFEN) {
-                evaluation = cachedEvaluation
-            } else {
-                evaluation = positionEvaluator.evaluate(posAfterMove)
-                await evaluationCache.set(evaluation, for: posFEN)
+            for move in moves {
+                let posAfterMove = position.applied(move: move)
+
+                let capturedValue: PieceValue
+                if let capturedValueDuringMove = (move as? CaptureMove)?.captured.type.defaultValue {
+                    capturedValue = capturedValueDuringMove
+                } else if let capturedValueDuringMove = (move as? PromotionMove)?.captured?.type.defaultValue {
+                    capturedValue = capturedValueDuringMove
+                } else {
+                    capturedValue = 0
+                }
+
+                let evaluation: PositionEvaluation = positionEvaluator.evaluate(posAfterMove)
+
+//                let posFEN = posAfterMove.fenBoardString
+//                if let cachedEvaluation = await evaluationCache.get(posFEN) {
+//                    evaluation = cachedEvaluation
+//                } else {
+//                    evaluation = positionEvaluator.evaluate(posAfterMove)
+//                    await evaluationCache.set(evaluation, for: posFEN)
+//                }
+
+                let repositionDelta = evaluation.values[sideToMove] - valueBeforeMove
+
+                switch evaluation.state {
+                case .kingCheckmated:
+                    wasCheckmateFound = true
+
+                    let result = MoveResult(
+                        side: sideToMove,
+                        move: move,
+                        capturedValue: capturedValue,
+                        repositionDelta: repositionDelta,
+                        isEnemyKingChecked: true,
+                        isEnemyKingCheckmated: true,
+                        isEnemyKingStalemated: false,
+                        isDraw: false,
+                        depth: currentDepth
+                    )
+                    moveResults.append(result)
+
+                case .kingChecked:
+                    let result = MoveResult(
+                        side: sideToMove,
+                        move: move,
+                        capturedValue: capturedValue,
+                        repositionDelta: repositionDelta,
+                        isEnemyKingChecked: true,
+                        isEnemyKingCheckmated: false,
+                        isEnemyKingStalemated: false,
+                        isDraw: false,
+                        depth: currentDepth
+                    )
+                    moveResults.append(result)
+                    movesToAnalyzeFurther.append((move.id, posAfterMove))
+
+                case .kingStalemated:
+                    let result = MoveResult(
+                        side: sideToMove,
+                        move: move,
+                        capturedValue: capturedValue,
+                        repositionDelta: repositionDelta,
+                        isEnemyKingChecked: false,
+                        isEnemyKingCheckmated: false,
+                        isEnemyKingStalemated: true,
+                        isDraw: true,
+                        depth: currentDepth
+                    )
+                    moveResults.append(result)
+
+                case .draw:
+                    let result = MoveResult(
+                        side: sideToMove,
+                        move: move,
+                        capturedValue: capturedValue,
+                        repositionDelta: repositionDelta,
+                        isEnemyKingChecked: false,
+                        isEnemyKingCheckmated: false,
+                        isEnemyKingStalemated: false,
+                        isDraw: true,
+                        depth: currentDepth
+                    )
+                    moveResults.append(result)
+
+                case .normal:
+                    let result = MoveResult(
+                        side: sideToMove,
+                        move: move,
+                        capturedValue: capturedValue,
+                        repositionDelta: repositionDelta,
+                        isEnemyKingChecked: false,
+                        isEnemyKingCheckmated: false,
+                        isEnemyKingStalemated: false,
+                        isDraw: false,
+                        depth: currentDepth
+                    )
+                    moveResults.append(result)
+                    movesToAnalyzeFurther.append((move.id, posAfterMove))
+                }
             }
 
-            let repositionDelta = evaluation.values[sideToMove] - valueBeforeMove
+            await decider.add(moveResults: moveResults)
 
-            switch evaluation.state {
-            case .kingCheckmated:
-                wasCheckmateFound = true
-
-                let result = MoveResult(
-                    side: sideToMove,
-                    move: move,
-                    capturedValue: capturedValue,
-                    repositionDelta: repositionDelta,
-                    isEnemyKingChecked: true,
-                    isEnemyKingCheckmated: true,
-                    isEnemyKingStalemated: false,
-                    isDraw: false,
-                    depth: currentDepth
-                )
-                moveResults.append(result)
-
-            case .kingChecked:
-                let result = MoveResult(
-                    side: sideToMove,
-                    move: move,
-                    capturedValue: capturedValue,
-                    repositionDelta: repositionDelta,
-                    isEnemyKingChecked: true,
-                    isEnemyKingCheckmated: false,
-                    isEnemyKingStalemated: false,
-                    isDraw: false,
-                    depth: currentDepth
-                )
-                moveResults.append(result)
-                movesToAnalyzeFurther.append((move, posAfterMove))
-
-            case .kingStalemated:
-                let result = MoveResult(
-                    side: sideToMove,
-                    move: move,
-                    capturedValue: capturedValue,
-                    repositionDelta: repositionDelta,
-                    isEnemyKingChecked: false,
-                    isEnemyKingCheckmated: false,
-                    isEnemyKingStalemated: true,
-                    isDraw: true,
-                    depth: currentDepth
-                )
-                moveResults.append(result)
-
-            case .draw:
-                let result = MoveResult(
-                    side: sideToMove,
-                    move: move,
-                    capturedValue: capturedValue,
-                    repositionDelta: repositionDelta,
-                    isEnemyKingChecked: false,
-                    isEnemyKingCheckmated: false,
-                    isEnemyKingStalemated: false,
-                    isDraw: true,
-                    depth: currentDepth
-                )
-                moveResults.append(result)
-
-            case .normal:
-                let result = MoveResult(
-                    side: sideToMove,
-                    move: move,
-                    capturedValue: capturedValue,
-                    repositionDelta: repositionDelta,
-                    isEnemyKingChecked: false,
-                    isEnemyKingCheckmated: false,
-                    isEnemyKingStalemated: false,
-                    isDraw: false,
-                    depth: currentDepth
-                )
-                moveResults.append(result)
-                movesToAnalyzeFurther.append((move, posAfterMove))
+            if wasCheckmateFound && !configuration.analyzeFurtherAfterCheckmateOnFirstDepth && currentDepth == 0 {
+                return
             }
-        }
-
-        await decider.add(moveResults: moveResults)
-
-        if wasCheckmateFound && !configuration.analyzeFurtherAfterCheckmateOnFirstDepth && currentDepth == 0 {
-            return
         }
 
         await withTaskGroup { group in
-            for (move, posAfterMove) in movesToAnalyzeFurther {
+            for (moveId, posAfterMove) in movesToAnalyzeFurther {
                 group.addTask {
                     await analyze(
                         position: posAfterMove,
-                        parentMoveId: move.id,
+                        parentMoveId: moveId,
                         currentDepth: currentDepth + 1,
                         configuration: configuration,
+                        positionEvaluator: positionEvaluator,
+                        legalMoveGenerator: legalMoveGenerator,
                         decider: decider,
                         evaluationCache: evaluationCache
                     )

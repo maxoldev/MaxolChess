@@ -81,7 +81,7 @@ final class Position5Test: XCTestCase {
     }
 
     func testBestMoveDepth4() {
-        measure {
+        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
             let expectation = XCTestExpectation()
             Task {
                 let engine: Engine = EngineImpl(

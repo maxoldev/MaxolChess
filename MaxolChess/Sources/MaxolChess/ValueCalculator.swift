@@ -16,7 +16,7 @@ public struct ValueCalculation: Equatable, Sendable {
     }
 }
 
-public protocol ValueCalculator {
+public protocol ValueCalculator: Sendable {
     /// - Returns: Doesn't take pieces' placement into account
     func calculateOnlyDefaultValues(_ position: Position) -> ValueCalculation
     /// - Returns: Takes pieces' placement into account

@@ -5,7 +5,7 @@
 //  Created by Maksim Solovev on 19.08.2025.
 //
 
-public protocol LegalMoveGenerator {
+public protocol LegalMoveGenerator: Sendable {
     /// Only valid moves excluding not possible due to check to own king
     func generateLegalMoves(_ position: Position, parentMoveId: MoveId?) -> [Move]
 }
