@@ -1,51 +1,76 @@
 //
-//  MoveResultRepo.swift
+//  Decider.swift
 //  MaxolChess
 //
 //  Created by Maksim Solovev on 17.08.2025.
 //
+
+public struct BestMove: Sendable {
+    public let move: Move
+    public let moveResult: MoveResult
+}
+
+extension BestMove: CustomStringConvertible {
+    public var description: String {
+        "\(move) (\(moveResult))"
+    }
+}
 
 public struct MoveResult: Sendable {
     public let side: PieceColor
 //    public let moveId: MoveId
 //    public let parentMoveId: MoveId?
     public let move: any Move
-    public let depth: Int
-    public let gain: PieceValue
+    public let capturedValue: PieceValue
+    public let repositionDelta: PieceValue
     public let isEnemyKingChecked: Bool
     public let isEnemyKingCheckmated: Bool
     public let isEnemyKingStalemated: Bool
     public let isDraw: Bool
 //    public var maxPotentialLoss: PieceValue
+    public let depth: Int
 }
 
-public protocol MoveResultRepo: Sendable {
-    func bestMove() async -> Move?
+extension MoveResult: CustomStringConvertible {
+    public var description: String {
+        "\(side) \(move.id.shortString) \(capturedValue) \(repositionDelta) \(isEnemyKingChecked) \(isEnemyKingCheckmated) \(isEnemyKingStalemated) \(isDraw) \(depth)"
+    }
+}
+
+public protocol Decider: Sendable {
+    func bestMove() async -> BestMove?
     func set(zeroDepthMoves: [any Move]) async
     func add(moveResults: [MoveResult]) async
     func clear() async
     func itemCount() async -> Int
 }
 
-public actor MoveResultRepoImpl: MoveResultRepo {
-    public enum MoveResultRepo: Error {
-        case moveResultNotFound
-    }
+public actor DeciderImpl: Decider {
+//    public enum MovePicker: Error {
+//        case moveResultNotFound
+//    }
     private var moveResults = [MoveId: MoveResult]()
     private var zeroDepthMoves = [any Move]()
 
     public init() {
     }
     
-    public func bestMove() async -> Move? {
+    public func bestMove() async -> BestMove? {
         let zeroDepthMoveResults = zeroDepthMoves.map { moveResults[$0.id]! }
         let checkmates = zeroDepthMoveResults.filter { $0.isEnemyKingCheckmated }
         if let firstCheckmate = checkmates.first?.move {
-            return firstCheckmate
+            return BestMove(move: firstCheckmate, moveResult: moveResults[firstCheckmate.id]!)
         }
         
-        let move = zeroDepthMoves.sorted { moveResults[$0.id]!.gain > moveResults[$1.id]!.gain }.first
-        return move
+        guard let move = zeroDepthMoves.sorted(by: {
+            let firstMoveRes = moveResults[$0.id]!
+            let secondMoveRes = moveResults[$1.id]!
+            return firstMoveRes.capturedValue + firstMoveRes.repositionDelta > secondMoveRes.capturedValue + secondMoveRes.repositionDelta
+        }).first else {
+            return nil
+        }
+
+        return BestMove(move: move, moveResult: moveResults[move.id]!)
     }
 
     public func set(zeroDepthMoves: [any Move]) async {

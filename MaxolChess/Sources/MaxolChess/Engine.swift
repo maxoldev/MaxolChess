@@ -51,7 +51,7 @@ public final class EngineImpl: Engine {
     private let legalMoveGenerator: LegalMoveGenerator
 
     private var currentState: GameState
-    private let moveResultRepo: MoveResultRepo
+    private let decider: Decider
     private let evaluationCache: EvaluationCache
 
     public init(
@@ -59,7 +59,7 @@ public final class EngineImpl: Engine {
         valueCalculator: ValueCalculator = ValueCalculatorImpl(),
         positionEvaluator: PositionEvaluator = PositionEvaluatorImpl(),
         legalMoveGenerator: LegalMoveGenerator = LegalMoveGeneratorImpl(),
-        moveResultRepo: MoveResultRepo = MoveResultRepoImpl(),
+        decider: Decider = DeciderImpl(),
         evaluationCache: EvaluationCache = EvaluationCacheImpl(),
         gameState: GameState = GameState(position: Position.start)
     ) {
@@ -67,7 +67,7 @@ public final class EngineImpl: Engine {
         self.valueCalculator = valueCalculator
         self.positionEvaluator = positionEvaluator
         self.legalMoveGenerator = legalMoveGenerator
-        self.moveResultRepo = moveResultRepo
+        self.decider = decider
         self.evaluationCache = evaluationCache
         self.currentState = gameState
     }
@@ -85,30 +85,32 @@ public final class EngineImpl: Engine {
         logDebug("Analyzed position:", currentState.position, category: .engine)
         let bench = Benchmark()
 
-        await moveResultRepo.clear()
+        await decider.clear()
 
         await Self.analyze(
             position: currentState.position,
             parentMoveId: nil,
             currentDepth: 0,
             configuration: configuration,
-            moveResultRepo: moveResultRepo,
+            decider: decider,
             evaluationCache: evaluationCache
         )
 
-        let bestMove = await moveResultRepo.bestMove()
+        let bestMove = await decider.bestMove()
 
-        let analyzedPositionCount = await moveResultRepo.itemCount()
+        let analyzedPositionCount = await decider.itemCount()
         let cachedPositionCount = await evaluationCache.itemCount()
         logDebug(
-            "BEST MOVE:",
-            bestMove,
+            """
+            BEST MOVE: \(bestMove as Any? ?? "NO VALID MOVES FOUND :(")
+            
+            """,
             bench.checkpoint(),
             "\(analyzedPositionCount) analyzed positions, \(cachedPositionCount) cached positions",
             category: .engine
         )
 
-        return bestMove
+        return bestMove?.move
     }
 
     public func setMove(_ move: Move) {
@@ -130,14 +132,14 @@ public final class EngineImpl: Engine {
         parentMoveId: MoveId?,
         currentDepth: Int,
         configuration: EngineConfiguration,
-        moveResultRepo: MoveResultRepo,
+        decider: Decider,
         evaluationCache: EvaluationCache
     ) async {
         if currentDepth >= configuration.maxDepth {
             return
         }
 
-        logDebug("Analysis... Depth = \(currentDepth + 1) halfmoves", category: .engine)
+        //logDebug("Analysis... Depth = \(currentDepth + 1) halfmoves", category: .engine)
         //logDebug(position, category: .engine)
 
         let sideToMove = position.sideToMove
@@ -146,21 +148,30 @@ public final class EngineImpl: Engine {
         let moves = legalMoveGenerator.generateLegalMoves(position, parentMoveId: parentMoveId)
 
         if currentDepth == 0 {
-            await moveResultRepo.set(zeroDepthMoves: moves)
+            await decider.set(zeroDepthMoves: moves)
         }
 
         var movesToAnalyzeFurther = [(move: Move, posAfterMove: Position)]()
         var moveResults = [MoveResult]()
         var wasCheckmateFound = false
+        let valueBeforeMove = ValueCalculatorImpl().calculate(position)[sideToMove]
 
         for move in moves {
-            await Task.yield()
+//            await Task.yield()
 
             let posAfterMove = position.applied(move: move)
-            // TODO: handle promotion capture
-            let gain = (move as? CaptureMove)?.captured.type.defaultValue ?? 0
+
+            let capturedValue: PieceValue
+            if let capturedValueDuringMove = (move as? CaptureMove)?.captured.type.defaultValue {
+                capturedValue = capturedValueDuringMove
+            } else if let capturedValueDuringMove = (move as? PromotionMove)?.captured?.type.defaultValue {
+                capturedValue = capturedValueDuringMove
+            } else {
+                capturedValue = 0
+            }
 
             let evaluation: PositionEvaluation
+
             let posFEN = posAfterMove.fenBoardString
             if let cachedEvaluation = await evaluationCache.get(posFEN) {
                 evaluation = cachedEvaluation
@@ -169,6 +180,8 @@ public final class EngineImpl: Engine {
                 await evaluationCache.set(evaluation, for: posFEN)
             }
 
+            let repositionDelta = evaluation.values[sideToMove] - valueBeforeMove
+
             switch evaluation.state {
             case .kingCheckmated:
                 wasCheckmateFound = true
@@ -176,12 +189,13 @@ public final class EngineImpl: Engine {
                 let result = MoveResult(
                     side: sideToMove,
                     move: move,
-                    depth: currentDepth,
-                    gain: gain,
+                    capturedValue: capturedValue,
+                    repositionDelta: repositionDelta,
                     isEnemyKingChecked: true,
                     isEnemyKingCheckmated: true,
                     isEnemyKingStalemated: false,
-                    isDraw: false
+                    isDraw: false,
+                    depth: currentDepth
                 )
                 moveResults.append(result)
 
@@ -189,12 +203,13 @@ public final class EngineImpl: Engine {
                 let result = MoveResult(
                     side: sideToMove,
                     move: move,
-                    depth: currentDepth,
-                    gain: gain,
+                    capturedValue: capturedValue,
+                    repositionDelta: repositionDelta,
                     isEnemyKingChecked: true,
                     isEnemyKingCheckmated: false,
                     isEnemyKingStalemated: false,
-                    isDraw: false
+                    isDraw: false,
+                    depth: currentDepth
                 )
                 moveResults.append(result)
                 movesToAnalyzeFurther.append((move, posAfterMove))
@@ -203,12 +218,13 @@ public final class EngineImpl: Engine {
                 let result = MoveResult(
                     side: sideToMove,
                     move: move,
-                    depth: currentDepth,
-                    gain: gain,
+                    capturedValue: capturedValue,
+                    repositionDelta: repositionDelta,
                     isEnemyKingChecked: false,
                     isEnemyKingCheckmated: false,
                     isEnemyKingStalemated: true,
-                    isDraw: true
+                    isDraw: true,
+                    depth: currentDepth
                 )
                 moveResults.append(result)
 
@@ -216,12 +232,13 @@ public final class EngineImpl: Engine {
                 let result = MoveResult(
                     side: sideToMove,
                     move: move,
-                    depth: currentDepth,
-                    gain: gain,
+                    capturedValue: capturedValue,
+                    repositionDelta: repositionDelta,
                     isEnemyKingChecked: false,
                     isEnemyKingCheckmated: false,
                     isEnemyKingStalemated: false,
-                    isDraw: true
+                    isDraw: true,
+                    depth: currentDepth
                 )
                 moveResults.append(result)
 
@@ -229,19 +246,20 @@ public final class EngineImpl: Engine {
                 let result = MoveResult(
                     side: sideToMove,
                     move: move,
-                    depth: currentDepth,
-                    gain: gain,
+                    capturedValue: capturedValue,
+                    repositionDelta: repositionDelta,
                     isEnemyKingChecked: false,
                     isEnemyKingCheckmated: false,
                     isEnemyKingStalemated: false,
-                    isDraw: false
+                    isDraw: false,
+                    depth: currentDepth
                 )
                 moveResults.append(result)
                 movesToAnalyzeFurther.append((move, posAfterMove))
             }
         }
 
-        await moveResultRepo.add(moveResults: moveResults)
+        await decider.add(moveResults: moveResults)
 
         if wasCheckmateFound && !configuration.analyzeFurtherAfterCheckmateOnFirstDepth && currentDepth == 0 {
             return
@@ -255,7 +273,7 @@ public final class EngineImpl: Engine {
                         parentMoveId: move.id,
                         currentDepth: currentDepth + 1,
                         configuration: configuration,
-                        moveResultRepo: moveResultRepo,
+                        decider: decider,
                         evaluationCache: evaluationCache
                     )
                 }
