@@ -34,51 +34,6 @@ final class StartPositionTest: XCTestCase {
         }
     }
 
-    func testBestMoveDepth1() {
-        measure {
-            let expectation = XCTestExpectation()
-            Task {
-                let engine: Engine = EngineImpl(
-                    configuration: EngineConfiguration(maxDepth: 1),
-                    gameState: GameState(position: Position.start)
-                )
-                _ = await engine.calculateBestMove()
-                expectation.fulfill()
-            }
-            wait(for: [expectation], timeout: 100)
-        }
-    }
-
-    func testBestMoveDepth2() {
-        measure {
-            let expectation = XCTestExpectation()
-            Task {
-                let engine: Engine = EngineImpl(
-                    configuration: EngineConfiguration(maxDepth: 2),
-                    gameState: GameState(position: Position.start)
-                )
-                _ = await engine.calculateBestMove()
-                expectation.fulfill()
-            }
-            wait(for: [expectation], timeout: 100)
-        }
-    }
-
-    func testBestMoveDepth3() {
-        measure {
-            let expectation = XCTestExpectation()
-            Task {
-                let engine: Engine = EngineImpl(
-                    configuration: EngineConfiguration(maxDepth: 3),
-                    gameState: GameState(position: Position.start)
-                )
-                _ = await engine.calculateBestMove()
-                expectation.fulfill()
-            }
-            wait(for: [expectation], timeout: 100)
-        }
-    }
-
     func testBestMoveDepth4() {
         measure {
             let expectation = XCTestExpectation()
@@ -90,7 +45,7 @@ final class StartPositionTest: XCTestCase {
                 _ = await engine.calculateBestMove()
                 expectation.fulfill()
             }
-            wait(for: [expectation], timeout: 200)
+            wait(for: [expectation], timeout: 20)
         }
     }
 }

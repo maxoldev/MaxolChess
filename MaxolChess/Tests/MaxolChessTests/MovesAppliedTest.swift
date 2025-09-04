@@ -17,8 +17,8 @@ struct MovesAppliedTest {
 
     @Test func castlingRightsAfterKingMove() async throws {
         let pos = try #require(Position(fen: "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1"))
-        #expect(pos.castlingRights[.white]?.count == 2)
-        #expect(pos.castlingRights[.black]?.count == 2)
+        #expect(pos.castlingRights[.white]!.count == 2)
+        #expect(pos.castlingRights[.black]!.count == 2)
 
         let posAfterWhiteKingMove = pos.applied(move: RepositionMove(parentMoveId: nil, piece: "K", from: "e1", to: "e2"))
         #expect(posAfterWhiteKingMove.castlingRights[.white]!.isEmpty)
@@ -42,18 +42,22 @@ struct MovesAppliedTest {
 
         var posAfterCastling = pos.applied(move: CastlingMove(parentMoveId: nil, side: .kingSide))
         #expect(posAfterCastling.castlingRights[.white]!.isEmpty)
+        #expect(posAfterCastling.kingCoordinate(.white) == "g1")
         #expect(posAfterCastling.fenString == "r3k2r/8/8/8/8/8/8/R4RK1 b kq - 1 1")
 
         posAfterCastling = pos.applied(move: CastlingMove(parentMoveId: nil, side: .queenSide))
         #expect(posAfterCastling.castlingRights[.white]!.isEmpty)
+        #expect(posAfterCastling.kingCoordinate(.white) == "c1")
         #expect(posAfterCastling.fenString == "r3k2r/8/8/8/8/8/8/2KR3R b kq - 1 1")
 
         posAfterCastling = pos.opposite.applied(move: CastlingMove(parentMoveId: nil, side: .kingSide))
         #expect(posAfterCastling.castlingRights[.black]!.isEmpty)
+        #expect(posAfterCastling.kingCoordinate(.black) == "g8")
         #expect(posAfterCastling.fenString == "r4rk1/8/8/8/8/8/8/R3K2R w KQ - 1 2")
 
         posAfterCastling = pos.opposite.applied(move: CastlingMove(parentMoveId: nil, side: .queenSide))
         #expect(posAfterCastling.castlingRights[.black]!.isEmpty)
+        #expect(posAfterCastling.kingCoordinate(.black) == "c8")
         #expect(posAfterCastling.fenString == "2kr3r/8/8/8/8/8/8/R3K2R w KQ - 1 2")
     }
 }

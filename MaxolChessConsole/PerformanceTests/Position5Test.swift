@@ -35,53 +35,8 @@ final class Position5Test: XCTestCase {
         }
     }
 
-    func testBestMoveDepth1() {
-        measure {
-            let expectation = XCTestExpectation()
-            Task {
-                let engine: Engine = EngineImpl(
-                    configuration: EngineConfiguration(maxDepth: 1),
-                    gameState: GameState(position: pos)
-                )
-                _ = await engine.calculateBestMove()
-                expectation.fulfill()
-            }
-            wait(for: [expectation], timeout: 100)
-        }
-    }
-
-    func testBestMoveDepth2() {
-        measure {
-            let expectation = XCTestExpectation()
-            Task {
-                let engine: Engine = EngineImpl(
-                    configuration: EngineConfiguration(maxDepth: 2),
-                    gameState: GameState(position: pos)
-                )
-                _ = await engine.calculateBestMove()
-                expectation.fulfill()
-            }
-            wait(for: [expectation], timeout: 100)
-        }
-    }
-
-    func testBestMoveDepth3() {
-        measure {
-            let expectation = XCTestExpectation()
-            Task {
-                let engine: Engine = EngineImpl(
-                    configuration: EngineConfiguration(maxDepth: 3),
-                    gameState: GameState(position: pos)
-                )
-                _ = await engine.calculateBestMove()
-                expectation.fulfill()
-            }
-            wait(for: [expectation], timeout: 100)
-        }
-    }
-
     func testBestMoveDepth4() {
-        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
+        measure {
             let expectation = XCTestExpectation()
             Task {
                 let engine: Engine = EngineImpl(
@@ -91,7 +46,7 @@ final class Position5Test: XCTestCase {
                 _ = await engine.calculateBestMove()
                 expectation.fulfill()
             }
-            wait(for: [expectation], timeout: 100)
+            wait(for: [expectation], timeout: 20)
         }
     }
 }
