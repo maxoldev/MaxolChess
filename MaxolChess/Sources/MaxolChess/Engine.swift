@@ -139,10 +139,6 @@ public final class EngineImpl: Engine {
         decider: Decider,
         evaluationCache: EvaluationCache
     ) async {
-        if currentDepth >= configuration.maxDepth {
-            return
-        }
-
         //logDebug("Analysis... Depth = \(currentDepth + 1) halfmoves", category: .engine)
         //logDebug(position, category: .engine)
 
@@ -269,6 +265,10 @@ public final class EngineImpl: Engine {
             if wasCheckmateFound && !configuration.analyzeFurtherAfterCheckmateOnFirstDepth && currentDepth == 0 {
                 return
             }
+        }
+
+        guard currentDepth + 1 < configuration.maxDepth else {
+            return
         }
 
         await withTaskGroup { group in
