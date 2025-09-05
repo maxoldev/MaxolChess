@@ -66,7 +66,7 @@ public struct Position: Equatable, Sendable {
 
 extension Position: CustomStringConvertible {
     public var description: String {
-        self.multiline()
+        self.multiline(unicode: Const.unicodePieces)
     }
 }
 

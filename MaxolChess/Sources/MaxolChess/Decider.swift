@@ -33,7 +33,8 @@ public struct MoveResult: Sendable {
 
 extension MoveResult: CustomStringConvertible {
     public var description: String {
-        "\(side) \(move.id.shortString) \(capturedValue) \(repositionDelta) \(isEnemyKingChecked) \(isEnemyKingCheckmated) \(isEnemyKingStalemated) \(isDraw) \(depth)"
+        let state = isEnemyKingCheckmated ? "#Checkmate" : isEnemyKingStalemated ? "Stalemate" : isDraw ? "Draw" : isEnemyKingChecked ? "+Check" : ""
+        return "\(side) \(move.id.shortString) d=\(depth) cap=\(capturedValue) repos=\(repositionDelta) \(state)"
     }
 }
 
