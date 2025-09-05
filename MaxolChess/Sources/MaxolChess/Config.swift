@@ -7,6 +7,5 @@
 
 public enum Config {
     public static let logMoveId = true
-    public static let unicodePieceNotation = true
-
+    public static let unicodePieceNotation = false
 }

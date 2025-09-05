@@ -49,7 +49,7 @@ public struct Board: Equatable, Sendable {
 
 extension Board: CustomStringConvertible {
     public var description: String {
-        self.multiline(unicode: Const.unicodePieces)
+        self.multiline(unicode: Config.unicodePieceNotation)
     }
 }
 
