@@ -15,10 +15,10 @@ public protocol PositionValidator: AnyObject {
 }
 
 public final class PositionValidatorImpl: PositionValidator {
-    let possibleMoveGenerator: PossibleMoveGenerator
+    let attackChecker: AttackChecker
 
-    public init(possibleMoveGenerator: PossibleMoveGenerator = PossibleMoveGeneratorImpl()) {
-        self.possibleMoveGenerator = possibleMoveGenerator
+    public init(attackChecker: AttackChecker = AttackCheckerImpl()) {
+        self.attackChecker = attackChecker
     }
 
     public func validate(_ position: Position) -> PositionValidatorResult {
@@ -26,14 +26,10 @@ public final class PositionValidatorImpl: PositionValidator {
 
         for kingColor in [PieceColor.white, .black] {
             if let kingCoordinate = position.kingCoordinate(kingColor) {
-                var attackersPosition = position
-                attackersPosition.sideToMove = kingColor.opposite
-                let attackerMovesWithCheck = possibleMoveGenerator.generateAllMoves(attackersPosition, parentMoveId: nil)
-                    .filter { ($0 as? CaptureMove)?.to == kingCoordinate }
+                let isKingAttacked = attackChecker.areCoordinates([kingCoordinate], attackedBy: kingColor.opposite, board: position.board)
 
-                if !attackerMovesWithCheck.isEmpty {
+                if isKingAttacked {
                     kingsInCheck.insert(kingColor)
-                    continue
                 }
             }
         }
@@ -41,6 +37,7 @@ public final class PositionValidatorImpl: PositionValidator {
         if kingsInCheck.count > 1 {
             return .invalid2KingsInCheck
         }
+
         return .valid
     }
 }

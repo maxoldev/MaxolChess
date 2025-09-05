@@ -9,8 +9,33 @@ import MaxolChess
 import Testing
 
 struct PositionValidatorTest {
-    @Test func valid() async throws {
+    @Test func start() async throws {
         #expect(PositionValidatorImpl().validate(Position.start) == .valid)
+    }
+
+    @Test func oneKingInCheck() async throws {
+        #expect(
+            PositionValidatorImpl().validate(
+                Position(
+                    Board(
+                        multiline: """
+                              ┌───────────────┐
+                            8  K . Q . . . . .
+                            7  . . . . . . . .
+                            6  k . . . . . . .
+                            5  . . . . . . . .
+                            4  . . . . . . . .
+                            3  . . . . . . . .
+                            2  . . . . . . . .
+                            1  . . . . . . . .
+                              └───────────────┘
+                               a b c d e f g h
+                            """
+                    )!,
+                    sideToMove: .white
+                )
+            ) == .valid
+        )
     }
 
     @Test func invalid() async throws {
@@ -20,9 +45,9 @@ struct PositionValidatorTest {
                     Board(
                         multiline: """
                               ┌───────────────┐
-                            8  ♔ . ♛ . . . . .
+                            8  K . Q . . . . .
                             7  . . . . . . . .
-                            6  ♚ . ♕ . . . . .
+                            6  k . q . . . . .
                             5  . . . . . . . .
                             4  . . . . . . . .
                             3  . . . . . . . .

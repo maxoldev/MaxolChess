@@ -7,20 +7,27 @@
 
 public protocol AttackChecker: Sendable {
     func isCoordinate(_ coordinate: Coordinate, attackedBy side: PieceColor, board: Board) -> Bool
+    func areCoordinates(_ coordinates: [Coordinate], attackedBy side: PieceColor, board: Board) -> Bool
 }
 
 public final class AttackCheckerImpl: AttackChecker {
     public init() {
     }
 
-    public func isCoordinate(_ coordinate: Coordinate, attackedBy color: PieceColor, board: Board) -> Bool {
+    public func isCoordinate(_ coordinate: Coordinate, attackedBy side: PieceColor, board: Board) -> Bool {
+        areCoordinates([coordinate], attackedBy: side, board: board)
+    }
+
+    public func areCoordinates(_ coordinates: [Coordinate], attackedBy color: PieceColor, board: Board) -> Bool {
         // Pawns
         do {
             let advances: [(Int, Int)] = color == .white ? [(-1, -1), (1, -1)] : [(-1, 1), (1, 1)]
-            for (dx, dy) in advances {
-                if let newCoordinate = coordinate.advancedBy(dx, dy) {
-                    if let other = board[newCoordinate], other.type == .pawn, other.color == color {
-                        return true
+            for coordinate in coordinates {
+                for (dx, dy) in advances {
+                    if let newCoordinate = coordinate.advancedBy(dx, dy) {
+                        if let other = board[newCoordinate], other.type == .pawn, other.color == color {
+                            return true
+                        }
                     }
                 }
             }
@@ -38,10 +45,12 @@ public final class AttackCheckerImpl: AttackChecker {
                 (-1, -2),
                 (-2, -1),
             ]
-            for (dx, dy) in advances {
-                if let newCoordinate = coordinate.advancedBy(dx, dy) {
-                    if let other = board[newCoordinate], other.color == color, other.type == .knight {
-                        return true
+            for coordinate in coordinates {
+                for (dx, dy) in advances {
+                    if let newCoordinate = coordinate.advancedBy(dx, dy) {
+                        if let other = board[newCoordinate], other.color == color, other.type == .knight {
+                            return true
+                        }
                     }
                 }
             }
@@ -55,25 +64,27 @@ public final class AttackCheckerImpl: AttackChecker {
                 (1, -1),
                 (-1, -1),
             ]
-            for (dx, dy) in advances {
-                var count = 1
-                repeat {
-                    defer {
-                        count += 1
-                    }
-
-                    guard let newCoordinate = coordinate.advancedBy(dx * count, dy * count) else {
-                        break
-                    }
-
-                    if let other = board[newCoordinate] {
-                        if other.color == color, other.type == .bishop || other.type == .queen {
-                            return true
+            for coordinate in coordinates {
+                for (dx, dy) in advances {
+                    var count = 1
+                    repeat {
+                        defer {
+                            count += 1
                         }
 
-                        break
-                    }
-                } while true
+                        guard let newCoordinate = coordinate.advancedBy(dx * count, dy * count) else {
+                            break
+                        }
+
+                        if let other = board[newCoordinate] {
+                            if other.color == color, other.type == .bishop || other.type == .queen {
+                                return true
+                            }
+
+                            break
+                        }
+                    } while true
+                }
             }
         }
 
@@ -85,44 +96,48 @@ public final class AttackCheckerImpl: AttackChecker {
                 (1, 0),
                 (0, -1),
             ]
-            for (dx, dy) in advances {
-                var count = 1
-                repeat {
-                    defer {
-                        count += 1
-                    }
-
-                    guard let newCoordinate = coordinate.advancedBy(dx * count, dy * count) else {
-                        break
-                    }
-
-                    if let other = board[newCoordinate] {
-                        if other.color == color, other.type == .rook || other.type == .queen {
-                            return true
+            for coordinate in coordinates {
+                for (dx, dy) in advances {
+                    var count = 1
+                    repeat {
+                        defer {
+                            count += 1
                         }
 
-                        break
-                    }
-                } while true
+                        guard let newCoordinate = coordinate.advancedBy(dx * count, dy * count) else {
+                            break
+                        }
+
+                        if let other = board[newCoordinate] {
+                            if other.color == color, other.type == .rook || other.type == .queen {
+                                return true
+                            }
+
+                            break
+                        }
+                    } while true
+                }
             }
         }
 
         // King
         do {
-            let advances: [(Int, Int)] = [
-                (-1, 0),
-                (-1, 1),
-                (0, 1),
-                (1, 1),
-                (1, 0),
-                (1, -1),
-                (0, -1),
-                (-1, -1),
-            ]
-            for (dx, dy) in advances {
-                if let newCoordinate = coordinate.advancedBy(dx, dy) {
-                    if let other = board[newCoordinate], other.type == .king, other.color == color {
-                        return true
+            for coordinate in coordinates {
+                let advances: [(Int, Int)] = [
+                    (-1, 0),
+                    (-1, 1),
+                    (0, 1),
+                    (1, 1),
+                    (1, 0),
+                    (1, -1),
+                    (0, -1),
+                    (-1, -1),
+                ]
+                for (dx, dy) in advances {
+                    if let newCoordinate = coordinate.advancedBy(dx, dy) {
+                        if let other = board[newCoordinate], other.type == .king, other.color == color {
+                            return true
+                        }
                     }
                 }
             }
