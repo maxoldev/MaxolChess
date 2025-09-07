@@ -39,7 +39,7 @@ public final class LegalMoveGeneratorImpl: LegalMoveGenerator {
                 let allPieceMoves = possibleMoveGenerator.generateAllMoves(position, from: Coordinate(i), parentMoveId: parentMoveId)
 
                 var legalPieceMoves = [Move]()
-                
+
                 for move in allPieceMoves {
                     var posAfterMove = position.applied(move: move)
                     posAfterMove.sideToMove = sideToMove
@@ -53,6 +53,8 @@ public final class LegalMoveGeneratorImpl: LegalMoveGenerator {
                         if !isKingAttacked {
                             legalPieceMoves.append(move)
                         }
+                    } else {
+                        legalPieceMoves.append(move)
                     }
                 }
                 legalMoves.append(contentsOf: legalPieceMoves)
@@ -70,30 +72,26 @@ public final class LegalMoveGeneratorImpl: LegalMoveGenerator {
             let kingCoord = position.kingCoordinate(sideToMove)!
 
             do {
-                let interCoord1 = kingCoord.advancedBy(1, 0)!
-                let interCoord2 = kingCoord.advancedBy(2, 0)!
-                if position.castlingRights[sideToMove]!.contains(.kingSide)
-                    && position.board[interCoord1] == nil
-                    && position.board[interCoord2] == nil
-                    && !attackChecker.areCoordinates([interCoord1, interCoord2], attackedBy: sideToMove.opposite, board: position.board)
+                if position.castlingRights[sideToMove]!.contains(.kingSide),
+                   let interCoord1 = kingCoord.advancedBy(1, 0),
+                   let interCoord2 = kingCoord.advancedBy(2, 0), position.board[interCoord1] == nil, position.board[interCoord2] == nil,
+                   !attackChecker.areCoordinates([interCoord1, interCoord2], attackedBy: sideToMove.opposite, board: position.board)
                 {
                     castlingMoves.append(CastlingMove(parentMoveId: parentMoveId, side: .kingSide))
                 }
             }
-            let interCoord1 = kingCoord.advancedBy(-1, 0)!
-            let interCoord2 = kingCoord.advancedBy(-2, 0)!
-            let interCoord3 = kingCoord.advancedBy(-3, 0)!
-            if position.castlingRights[sideToMove]!.contains(.queenSide)
-                && position.board[interCoord1] == nil
-                && position.board[interCoord2] == nil
-                && position.board[interCoord3] == nil
-                && !attackChecker.areCoordinates(
+            do {
+                if position.castlingRights[sideToMove]!.contains(.queenSide), let interCoord1 = kingCoord.advancedBy(-1, 0),
+                   let interCoord2 = kingCoord.advancedBy(-2, 0), let interCoord3 = kingCoord.advancedBy(-3, 0),
+                   position.board[interCoord1] == nil, position.board[interCoord2] == nil, position.board[interCoord3] == nil,
+                   !attackChecker.areCoordinates(
                     [interCoord1, interCoord2, interCoord3],
                     attackedBy: sideToMove.opposite,
                     board: position.board
-                )
-            {
-                castlingMoves.append(CastlingMove(parentMoveId: parentMoveId, side: .queenSide))
+                   )
+                {
+                    castlingMoves.append(CastlingMove(parentMoveId: parentMoveId, side: .queenSide))
+                }
             }
         }
         return castlingMoves
