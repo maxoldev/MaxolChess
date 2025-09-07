@@ -17,7 +17,7 @@ public enum PieceType: String, Sendable {
 
     public var defaultValue: PieceValue {
         switch self {
-        case .king: return 1000
+        case .king: return 0
         case .queen: return 9
         case .rook: return 5
         case .bishop: return 3

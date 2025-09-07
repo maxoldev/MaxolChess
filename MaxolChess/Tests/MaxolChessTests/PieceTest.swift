@@ -69,7 +69,7 @@ struct PieceTest {
         #expect(PieceType.bishop.defaultValue == 3)
         #expect(PieceType.rook.defaultValue == 5)
         #expect(PieceType.queen.defaultValue == 9)
-        #expect(PieceType.king.defaultValue == 1000)
+        #expect(PieceType.king.defaultValue == 0)
     }
 
     @Test func oppositeColor() async throws {

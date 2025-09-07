@@ -19,14 +19,14 @@ struct ValueCalculatorTest {
         #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("B", "e4"))!, sideToMove: .white)).white == 3)
         #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("R", "e4"))!, sideToMove: .white)).white == 5)
         #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("Q", "e4"))!, sideToMove: .white)).white == 9)
-        #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("K", "e4"))!, sideToMove: .white)).white == 1000)
+        #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("K", "e4"))!, sideToMove: .white)).white == 0)
 
         #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("p", "e4"))!, sideToMove: .white)).black == 1)
         #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("n", "e4"))!, sideToMove: .white)).black == 3)
         #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("b", "e4"))!, sideToMove: .white)).black == 3)
         #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("r", "e4"))!, sideToMove: .white)).black == 5)
         #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("q", "e4"))!, sideToMove: .white)).black == 9)
-        #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("k", "e4"))!, sideToMove: .white)).black == 1000)
+        #expect(valueCalc.calculateOnlyDefaultValues(Position(Board(pieces: ("k", "e4"))!, sideToMove: .white)).black == 0)
     }
 
     @Test func boardCoordinateCoefficients() {
