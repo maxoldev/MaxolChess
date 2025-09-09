@@ -66,7 +66,7 @@ public struct Position: Equatable, Sendable {
 
 extension Position: CustomStringConvertible {
     public var description: String {
-        self.multiline(unicode: Config.unicodePieceNotation)
+        self.multiline(unicode: Config.shared.log.useUnicodePieceNotation)
     }
 }
 
@@ -120,7 +120,7 @@ extension Position {
         }
     }
 
-    public func multiline(unicode: Bool = Config.unicodePieceNotation) -> String {
+    public func multiline(unicode: Bool = Config.shared.log.useUnicodePieceNotation) -> String {
         "\(board.multiline(unicode: unicode))\n\(fenStateString)"
     }
 

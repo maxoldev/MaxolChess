@@ -10,6 +10,10 @@ import XCTest
 import MaxolChess
 
 final class StartPositionTest: XCTestCase {
+    override class func setUp() {
+        Config.shared = Config.performanceTestConfig
+    }
+
     func testGenerateAllMoves() throws {
         let moveGen = PossibleMoveGeneratorImpl()
 

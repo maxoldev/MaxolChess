@@ -6,49 +6,50 @@
 ///     - isSecured: If `true` in release build text in Console will be replaced with placeholder when Xcode isn't connected
 public func logConsole(
     _ items: Any...,
+    separator: String = " ",
     category: LogCategory = .general,
     logLevel: LogLevel = .debug,
     isSecured: Bool = false)
 {
-    Log.console(items, category: category, logLevel: logLevel, isSecured: isSecured)
+    Log.console(items, separator: separator, category: category, logLevel: logLevel, isSecured: isSecured)
 }
 
 /// Print text to console marked with your custom prefix set in build scheme environment variable `MAXOL_CONSOLE_MARK`.
 /// Useful for temporary debugging
-public func logConsoleMarked(_ items: Any?..., category: LogCategory = .general) {
-    Log.consoleMarked(items, category: category)
+public func logConsoleMarked(_ items: Any?..., separator: String = " ", category: LogCategory = .general) {
+    Log.consoleMarked(items, separator: separator, category: category)
 }
 
 /// Print text to console. In release build text in Console will be replaced with placeholder when Xcode isn't connected.
 /// Same as `logConsole(isSecured: true)`
 /// Useful for printing some auth tokens, etc.
-public func logConsoleSecured(_ items: Any?..., category: LogCategory = .general) {
-    Log.consoleSecured(items, category: category)
+public func logConsoleSecured(_ items: Any?..., separator: String = " ", category: LogCategory = .general) {
+    Log.consoleSecured(items, separator: separator, category: category)
 }
 
 /// Log with level: `.debug`
-public func logDebug(_ items: Any?..., params: LogParameters = [:], category: LogCategory = .general) {
-    Log.debug(items, params: params, category: category)
+public func logDebug(_ items: Any?..., separator: String = " ", params: LogParameters = [:], category: LogCategory = .general) {
+    Log.debug(items, separator: separator, params: params, category: category)
 }
 
 /// Log with level: `.info`
-public func logInfo(_ items: Any?..., params: LogParameters = [:], category: LogCategory = .general) {
-    Log.info(items, params: params, category: category)
+public func logInfo(_ items: Any?..., separator: String = " ", params: LogParameters = [:], category: LogCategory = .general) {
+    Log.info(items, separator: separator, params: params, category: category)
 }
 
 /// Log with level: `.default`
-public func log(_ items: Any?..., params: LogParameters = [:], category: LogCategory = .general) {
-    Log.log(items, params: params, category: category)
+public func log(_ items: Any?..., separator: String = " ", params: LogParameters = [:], category: LogCategory = .general) {
+    Log.log(items, separator: separator, params: params, category: category)
 }
 
 /// Log with level: `.warning`
-public func logWarning(_ items: Any?..., params: LogParameters = [:], category: LogCategory = .general) {
-    Log.warning(items, params: params, category: category)
+public func logWarning(_ items: Any?..., separator: String = " ", params: LogParameters = [:], category: LogCategory = .general) {
+    Log.warning(items, separator: separator, params: params, category: category)
 }
 
 /// Log with level: `.error`
-public func logError(_ items: Any?..., params: LogParameters = [:], category: LogCategory = .general) {
-    Log.error(items, params: params, category: category)
+public func logError(_ items: Any?..., separator: String = " ", params: LogParameters = [:], category: LogCategory = .general) {
+    Log.error(items, separator: separator, params: params, category: category)
 }
 
 /// Log with level: `.error`
@@ -72,6 +73,7 @@ public func logMessage(_ message: LogMessage, logToConsole: Bool = true, logToSe
 ///     - secureLogToConsole: If `true` in AppStore builds text in Console will be replaced with placeholder when Xcode isn't connected
 public func logCustom(
     _ items: Any?...,
+    separator: String = " ",
     params: LogParameters,
     category: LogCategory,
     logLevel: LogLevel,
@@ -81,6 +83,7 @@ public func logCustom(
 {
     Log.wrapToLogMessageAndLog(
         items,
+        separator: separator,
         params: params,
         category: category,
         logLevel: logLevel,

@@ -7,14 +7,32 @@
 
 public struct PositionEvaluation: Sendable {
     public enum State: Sendable {
-        case normal
+        case `default`
         case kingChecked
         case kingCheckmated
         case kingStalemated
         case draw
     }
-    public let state: State
-    public let values: ValueCalculation
+    fileprivate let state: State
+    public let advantage: Double
+}
+
+extension PositionEvaluation.State: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .default: "Default"
+        case .kingChecked: "+Check"
+        case .kingCheckmated: "#Checkmate"
+        case .kingStalemated: "Stalemate"
+        case .draw: "Draw"
+        }
+    }
+}
+
+extension PositionEvaluation: CustomStringConvertible {
+    public var description: String {
+        "\(state), Advantage = \(advantage)"
+    }
 }
 
 public protocol PositionEvaluator: AnyObject, Sendable {
@@ -38,7 +56,7 @@ public final class PositionEvaluatorImpl: PositionEvaluator {
 
     public func evaluate(_ position: Position) -> PositionEvaluation {
         var isKingChecked = false
-        var isKingCheckedmated = false
+        var isKingCheckmated = false
 
         if let kingCoordinate = position.kingCoordinate(position.sideToMove) {
             let isKingAttacked = attackChecker.isCoordinate(kingCoordinate, attackedBy: position.sideToMove.opposite, board: position.board)
@@ -62,21 +80,28 @@ public final class PositionEvaluatorImpl: PositionEvaluator {
                     }
                 }
                 if stillInCheckCount == defenderMoves.count {
-                    isKingCheckedmated = true
+                    isKingCheckmated = true
                 }
             }
         }
 
         let values = valueCalculator.calculate(position)
 
-        if isKingCheckedmated {
-            return PositionEvaluation(state: .kingCheckmated, values: values)
+        let evaluation: PositionEvaluation
+
+        let valueDiff = values.white - values.black
+
+        if isKingCheckmated {
+            let advantage = position.sideToMove == .white ? -Const.Evaluation.checkmate : Const.Evaluation.checkmate
+            evaluation = PositionEvaluation(state: .kingCheckmated, advantage: advantage)
+        } else if isKingChecked {
+            let advantage = valueDiff + (position.sideToMove == .white ? -Const.Evaluation.check : Const.Evaluation.check)
+            evaluation = PositionEvaluation(state: .kingChecked, advantage: advantage)
+        } else {
+            let advantage = valueDiff
+            evaluation = PositionEvaluation(state: .default, advantage: advantage)
         }
 
-        if isKingChecked {
-            return PositionEvaluation(state: .kingChecked, values: values)
-        }
-
-        return PositionEvaluation(state: .normal, values: values)
+        return evaluation
     }
 }

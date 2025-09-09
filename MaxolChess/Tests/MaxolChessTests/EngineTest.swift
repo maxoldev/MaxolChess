@@ -13,12 +13,10 @@ import XCTest
 
 struct EngineTest {
     @Test func test0() async throws {
-        let pos = Position(fen: "4k3/4p3/8/8/8/8/4P3/4K3 w - - 0 1")!
-
         let engine: Engine = EngineImpl(
-            gameState: GameState(position: pos)
+            gameState: GameState(position: Position(fen: "4k3/4p3/8/8/8/8/4P3/4K3 w - - 0 1")!)
         )
-        let move = await engine.calculateBestMove()
+        let move = try #require(await engine.calculateBestMove())
         logConsoleMarked(move)
     }
 
@@ -26,12 +24,20 @@ struct EngineTest {
         let engine: Engine = EngineImpl(
             gameState: GameState(position: Position.start)
         )
-        var move = await engine.calculateBestMove()
-        engine.setMove(move!)
+
+        var move = try #require(await engine.calculateBestMove())
+        logConsoleMarked(move)
+        engine.setMove(move)
+
         engine.setMove(RepositionMove(parentMoveId: nil, piece: Piece(.black, .pawn), from: "e7", to: "e6"))
-        move = await engine.calculateBestMove()
-        engine.setMove(move!)
+
+        move = try #require(await engine.calculateBestMove())
+        logConsoleMarked(move)
+        engine.setMove(move)
+
         engine.setMove(RepositionMove(parentMoveId: nil, piece: Piece(.black, .pawn), from: "e6", to: "e5"))
-        move = await engine.calculateBestMove()
+
+        move = try #require(await engine.calculateBestMove())
+        logConsoleMarked(move)
     }
 }

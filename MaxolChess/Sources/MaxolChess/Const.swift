@@ -36,4 +36,10 @@ public enum Const {
     //    a      b      c      d      e      f      g      h
     ]
     public static let boardCoordinateCoefficientsForBlackKing: [PieceValue] = boardCoordinateCoefficientsForWhiteKing.reversed()
+
+    public enum Evaluation {
+        public static let check = 1000.0
+        public static let checkmate = 10000.0
+        public static let draw = 100.0
+    }
 }

@@ -17,10 +17,11 @@ print("uciok")
 
 print("readyok")
 
+Config.shared = Config.game
+
 let opponentColor = PieceColor.white
-let engine = EngineImpl(configuration: EngineConfiguration(maxDepth: 3), gameState: GameState(position: Position.start))
-let possibleMoveGenerator = PossibleMoveGeneratorImpl()
-let positionEvaluator = PositionEvaluatorImpl()
+let engine: Engine = EngineImpl(configuration: EngineConfiguration(maxDepth: 4), gameState: GameState(position: Position.start))
+let legalMoveGenerator: LegalMoveGenerator = LegalMoveGeneratorImpl()
 
 print("You are playing \(opponentColor)")
 
@@ -50,17 +51,15 @@ while true {
             print("Invalid coordinate from \(from). No \(opponentColor) piece on this square")
             continue
         }
-        
-        let allMoves = possibleMoveGenerator.generateAllMoves(engine.getCurrentState().position, from: from, parentMoveId: nil)
-        var possibleMoves = [Move]()
-        for move in allMoves {
-            let posAfterMove = pos.applied(move: move)
-            let evaluation = positionEvaluator.evaluate(posAfterMove)
-            if evaluation.state != .kingChecked && evaluation.state != .kingCheckmated {
-                possibleMoves.append(move)
-            }
-        }
-        guard let opponentMove = possibleMoves.first(where: { ($0 as? RepositionMove)?.from == from && ($0 as? RepositionMove)?.to == to || ($0 as? CaptureMove)?.from == from && ($0 as? CaptureMove)?.to == to }) else {
+
+        let legalOpponentMoves = legalMoveGenerator.generateLegalMoves(engine.getCurrentState().position, parentMoveId: nil)
+
+        guard
+            let opponentMove = legalOpponentMoves.first(where: {
+                ($0 as? RepositionMove)?.from == from && ($0 as? RepositionMove)?.to == to
+                    || ($0 as? CaptureMove)?.from == from && ($0 as? CaptureMove)?.to == to
+            })
+        else {
             print("No legal move \(from)\(to) found")
             continue
         }

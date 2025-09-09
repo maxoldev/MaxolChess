@@ -28,7 +28,7 @@ public struct RepositionMove: Move {
 
 extension RepositionMove: CustomStringConvertible {
     public var description: String {
-        "\(piece)\(from)-\(to)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
+        "\(piece)\(from)-\(to)\(Config.shared.log.moveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
     }
 }
 
@@ -43,7 +43,7 @@ public struct CaptureMove: Move {
 
 extension CaptureMove: CustomStringConvertible {
     public var description: String {
-        "\(piece)x\(captured)\(from)-\(to)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
+        "\(piece)x\(captured)\(from)-\(to)\(Config.shared.log.moveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
     }
 }
 
@@ -55,7 +55,7 @@ public struct CastlingMove: Move {
 
 extension CastlingMove: CustomStringConvertible {
     public var description: String {
-        "\(side)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "←"+$0.shortString } ?? "")" : "")"
+        "\(side)\(Config.shared.log.moveId ? " \(id.shortString)\(parentMoveId.map { "←"+$0.shortString } ?? "")" : "")"
     }
 }
 
@@ -71,6 +71,6 @@ public struct PromotionMove: Move {
 
 extension PromotionMove: CustomStringConvertible {
     public var description: String {
-        "\(piece)\(captured.map { "x"+$0.description } ?? "")→\(newPiece) \(from)-\(to)\(Config.logMoveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
+        "\(piece)\(captured.map { "x"+$0.description } ?? "")→\(newPiece) \(from)-\(to)\(Config.shared.log.moveId ? " \(id.shortString)\(parentMoveId.map { "<-"+$0.shortString } ?? "")" : "")"
     }
 }

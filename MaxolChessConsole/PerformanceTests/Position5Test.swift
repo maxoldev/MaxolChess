@@ -11,6 +11,10 @@ import XCTest
 private let pos = Position(fen: "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8")!
 
 final class Position5Test: XCTestCase {
+    override class func setUp() {
+        Config.shared = Config.performanceTestConfig
+    }
+
     func testGenerateAllMoves() throws {
         let moveGen = PossibleMoveGeneratorImpl()
 

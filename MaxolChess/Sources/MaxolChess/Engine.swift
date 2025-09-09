@@ -5,6 +5,8 @@
 //  Created by Maksim Solovev on 17.08.2025.
 //
 
+import Foundation
+
 public struct GameState {
     public var position: Position
     public var playedMoves: [Move] = []
@@ -45,13 +47,17 @@ public protocol Engine {
 }
 
 public final class EngineImpl: Engine {
+    fileprivate struct EvaluatedRootMove {
+        let move: Move
+        let aggregatedAdvantage: Double
+    }
+
     private let configuration: EngineConfiguration
     private let valueCalculator: ValueCalculator
     private let positionEvaluator: PositionEvaluator
     private let legalMoveGenerator: LegalMoveGenerator
 
     private var currentState: GameState
-    private let decider: Decider
     private let evaluationCache: EvaluationCache
 
     public init(
@@ -59,7 +65,6 @@ public final class EngineImpl: Engine {
         valueCalculator: ValueCalculator = ValueCalculatorImpl(),
         positionEvaluator: PositionEvaluator = PositionEvaluatorImpl(),
         legalMoveGenerator: LegalMoveGenerator = LegalMoveGeneratorImpl(),
-        decider: Decider = DeciderImpl(),
         evaluationCache: EvaluationCache = EvaluationCacheImpl(),
         gameState: GameState = GameState(position: Position.start)
     ) {
@@ -67,7 +72,6 @@ public final class EngineImpl: Engine {
         self.valueCalculator = valueCalculator
         self.positionEvaluator = positionEvaluator
         self.legalMoveGenerator = legalMoveGenerator
-        self.decider = decider
         self.evaluationCache = evaluationCache
         self.currentState = gameState
     }
@@ -81,36 +85,71 @@ public final class EngineImpl: Engine {
         currentState = state
     }
 
+    // MARK: - Analysis
     public func calculateBestMove() async -> Move? {
-        logDebug("Analyzed position:", currentState.position, category: .engine)
+        if Config.shared.log.positionOfSearchFrom {
+            logDebug("Searching for the best move in position:", currentState.position, category: .engine)
+        }
         let bench = Benchmark()
 
-        await decider.clear()
+        let moves = legalMoveGenerator.generateLegalMoves(currentState.position, parentMoveId: nil)
 
-        await Self.analyze(
-            position: currentState.position,
-            parentMoveId: nil,
-            currentDepth: 0,
-            configuration: configuration,
-            positionEvaluator: positionEvaluator,
-            legalMoveGenerator: legalMoveGenerator,
-            decider: decider,
-            evaluationCache: evaluationCache
-        )
+        var evaluatedMoves = [EvaluatedRootMove]()
 
-        let bestMove = await decider.bestMove()
+        for move in moves {
+            let posAfterMove = currentState.position.applied(move: move)
 
-        let analyzedPositionCount = await decider.itemCount()
-        let cachedPositionCount = await evaluationCache.itemCount()
-        logDebug(
-            """
-            BEST MOVE: \(bestMove as Any? ?? "NO VALID MOVES FOUND :(")
-            
-            """,
-            bench.checkpoint(),
-            "\(analyzedPositionCount) analyzed positions, \(cachedPositionCount) cached positions",
-            category: .engine
-        )
+            let evaluation = positionEvaluator.evaluate(posAfterMove)
+
+            if Config.shared.log.evaluation.rawValue >= Config.Log.Evaluation.rootMoves.rawValue {
+                logDebug("🥾Root move evaluation:", move, posAfterMove, evaluation, separator: "\n", category: .engine)
+            }
+
+            let furtherMovesAdvantageSum: Double
+            if configuration.maxDepth > 1 {
+                let logMovesDuringEvaluation = Config.shared.log.evaluation == .furtherPositionsWithMoveList
+
+                furtherMovesAdvantageSum = await Self.analyze(
+                    position: posAfterMove,
+                    movesToThisPosition: logMovesDuringEvaluation ? [move] : nil,
+                    ourSide: currentState.position.sideToMove,
+                    parentMoveId: move.id,
+                    currentDepth: 0,
+                    configuration: configuration,
+                    positionEvaluator: positionEvaluator,
+                    legalMoveGenerator: legalMoveGenerator,
+                    evaluationCache: evaluationCache
+                )
+            } else {
+                furtherMovesAdvantageSum = 0
+            }
+
+            let aggregatedAdvantage = evaluation.advantage + furtherMovesAdvantageSum
+
+            if Config.shared.log.evaluation.rawValue >= Config.Log.Evaluation.rootMoves.rawValue {
+                logDebug("🥾📊Root move total:", move, posAfterMove, aggregatedAdvantage, separator: "\n", category: .engine)
+            }
+            evaluatedMoves.append(EvaluatedRootMove(move: move, aggregatedAdvantage: aggregatedAdvantage))
+        }
+
+        let conditionForWhite: (EvaluatedRootMove, EvaluatedRootMove) -> Bool = { lhs, rhs in
+            lhs.aggregatedAdvantage < rhs.aggregatedAdvantage
+        }
+        let conditionForBlack: (EvaluatedRootMove, EvaluatedRootMove) -> Bool = { lhs, rhs in
+            lhs.aggregatedAdvantage > rhs.aggregatedAdvantage
+        }
+        let bestMove = evaluatedMoves.max(by: currentState.position.sideToMove == .white ? conditionForWhite : conditionForBlack)
+
+        if Config.shared.log.bestMove {
+            let analyzedPositionCount = 0
+            let cachedPositionCount = await evaluationCache.itemCount()
+            logDebug(
+                "BEST MOVE: \(bestMove as Any? ?? "NO VALID MOVES FOUND :(")",
+                bench.checkpoint(),
+                "\(analyzedPositionCount) analyzed positions, \(cachedPositionCount) cached positions",
+                category: .engine
+            )
+        }
 
         return bestMove?.move
     }
@@ -131,161 +170,118 @@ public final class EngineImpl: Engine {
 
     private static func analyze(
         position: Position,
+        movesToThisPosition: [Move]? = nil,
+        ourSide: PieceColor,
         parentMoveId: MoveId?,
         currentDepth: Int,
         configuration: EngineConfiguration,
         positionEvaluator: PositionEvaluator,
         legalMoveGenerator: LegalMoveGenerator,
-        decider: Decider,
         evaluationCache: EvaluationCache
-    ) async {
-        //logDebug("Analysis... Depth = \(currentDepth + 1) halfmoves", category: .engine)
-        //logDebug(position, category: .engine)
+    ) async -> Double {
+        if Config.shared.log.analysisDepth {
+            logDebug("Analysis... Depth = \(currentDepth + 1) halfmoves", category: .engine)
+        }
 
-        var movesToAnalyzeFurther = [(moveId: MoveId, posAfterMove: Position)]()
+        let sideToMove = position.sideToMove
 
-        do {
-            let sideToMove = position.sideToMove
+        typealias EvaluatedPosition = (position: Position, afterMove: Move, evaluation: PositionEvaluation)
 
-            let moves = legalMoveGenerator.generateLegalMoves(position, parentMoveId: parentMoveId)
+        var evaluatedPositions = [EvaluatedPosition]()
 
-            if currentDepth == 0 {
-                await decider.set(zeroDepthMoves: moves)
-            }
+        let moves = legalMoveGenerator.generateLegalMoves(position, parentMoveId: parentMoveId)
 
-            movesToAnalyzeFurther.reserveCapacity(moves.count)
-            var moveResults = [MoveResult]()
-            moveResults.reserveCapacity(moves.count)
-            var wasCheckmateFound = false
-            let valueBeforeMove = ValueCalculatorImpl().calculate(position)[sideToMove]
+        evaluatedPositions.reserveCapacity(moves.count)
 
-            for move in moves {
-                let posAfterMove = position.applied(move: move)
+        evaluatedPositions = moves.map { move in
+            let posAfterMove = position.applied(move: move)
 
-                let capturedValue: PieceValue
-                if let capturedValueDuringMove = (move as? CaptureMove)?.captured.type.defaultValue {
-                    capturedValue = capturedValueDuringMove
-                } else if let capturedValueDuringMove = (move as? PromotionMove)?.captured?.type.defaultValue {
-                    capturedValue = capturedValueDuringMove
+            let evaluation = positionEvaluator.evaluate(posAfterMove)
+//            let evaluation: PositionEvaluation
+//            let posFEN = posAfterMove.fenBoardString
+//            if let cachedEvaluation = await evaluationCache.get(posFEN) {
+//                evaluation = cachedEvaluation
+//            } else {
+//                evaluation = positionEvaluator.evaluate(posAfterMove)
+//                await evaluationCache.set(evaluation, for: posFEN)
+//            }
+
+            if Config.shared.log.evaluation.rawValue >= Config.Log.Evaluation.furtherPositions.rawValue {
+                let title = "🥾Further move evaluation (depth=\(currentDepth)):"
+
+                if Config.shared.log.evaluation == .furtherPositionsWithMoveList {
+                    logDebug(
+                        title,
+                        move,
+                        posAfterMove,
+                        evaluation,
+                        movesToThisPosition.map { $0 + [move] },
+                        separator: "\n",
+                        category: .engine
+                    )
                 } else {
-                    capturedValue = 0
-                }
-
-                let evaluation: PositionEvaluation = positionEvaluator.evaluate(posAfterMove)
-
-//                let posFEN = posAfterMove.fenBoardString
-//                if let cachedEvaluation = await evaluationCache.get(posFEN) {
-//                    evaluation = cachedEvaluation
-//                } else {
-//                    evaluation = positionEvaluator.evaluate(posAfterMove)
-//                    await evaluationCache.set(evaluation, for: posFEN)
-//                }
-
-                let repositionDelta = evaluation.values[sideToMove] - valueBeforeMove
-
-                switch evaluation.state {
-                case .kingCheckmated:
-                    wasCheckmateFound = true
-
-                    let result = MoveResult(
-                        side: sideToMove,
-                        move: move,
-                        capturedValue: capturedValue,
-                        repositionDelta: repositionDelta,
-                        isEnemyKingChecked: true,
-                        isEnemyKingCheckmated: true,
-                        isEnemyKingStalemated: false,
-                        isDraw: false,
-                        depth: currentDepth
+                    logDebug(
+                        title,
+                        move,
+                        posAfterMove,
+                        evaluation,
+                        separator: "\n",
+                        category: .engine
                     )
-                    moveResults.append(result)
-
-                case .kingChecked:
-                    let result = MoveResult(
-                        side: sideToMove,
-                        move: move,
-                        capturedValue: capturedValue,
-                        repositionDelta: repositionDelta,
-                        isEnemyKingChecked: true,
-                        isEnemyKingCheckmated: false,
-                        isEnemyKingStalemated: false,
-                        isDraw: false,
-                        depth: currentDepth
-                    )
-                    moveResults.append(result)
-                    movesToAnalyzeFurther.append((move.id, posAfterMove))
-
-                case .kingStalemated:
-                    let result = MoveResult(
-                        side: sideToMove,
-                        move: move,
-                        capturedValue: capturedValue,
-                        repositionDelta: repositionDelta,
-                        isEnemyKingChecked: false,
-                        isEnemyKingCheckmated: false,
-                        isEnemyKingStalemated: true,
-                        isDraw: true,
-                        depth: currentDepth
-                    )
-                    moveResults.append(result)
-
-                case .draw:
-                    let result = MoveResult(
-                        side: sideToMove,
-                        move: move,
-                        capturedValue: capturedValue,
-                        repositionDelta: repositionDelta,
-                        isEnemyKingChecked: false,
-                        isEnemyKingCheckmated: false,
-                        isEnemyKingStalemated: false,
-                        isDraw: true,
-                        depth: currentDepth
-                    )
-                    moveResults.append(result)
-
-                case .normal:
-                    let result = MoveResult(
-                        side: sideToMove,
-                        move: move,
-                        capturedValue: capturedValue,
-                        repositionDelta: repositionDelta,
-                        isEnemyKingChecked: false,
-                        isEnemyKingCheckmated: false,
-                        isEnemyKingStalemated: false,
-                        isDraw: false,
-                        depth: currentDepth
-                    )
-                    moveResults.append(result)
-                    movesToAnalyzeFurther.append((move.id, posAfterMove))
                 }
             }
 
-            await decider.add(moveResults: moveResults)
+            return (posAfterMove, move, evaluation)
+        }
 
-            if wasCheckmateFound && !configuration.analyzeFurtherAfterCheckmateOnFirstDepth && currentDepth == 0 {
-                return
-            }
+        // Every depth adds less value to the summarized advantage of the root move
+        var advantageSum = evaluatedPositions.reduce(0.0) { $0 + $1.evaluation.advantage } * pow(10.0, -Double(currentDepth) - 1)
+
+        if Config.shared.log.evaluation == .furtherPositions {
+            logDebug("Position sum:", position, advantageSum, separator: "\n", category: .engine)
         }
 
         guard currentDepth + 1 < configuration.maxDepth else {
-            return
+            return advantageSum
         }
 
-        await withTaskGroup { group in
-            for (moveId, posAfterMove) in movesToAnalyzeFurther {
+        func sortForWhite(lhs: EvaluatedPosition, rhs: EvaluatedPosition) -> Bool {
+            lhs.evaluation.advantage > rhs.evaluation.advantage
+        }
+        func sortForBlack(lhs: EvaluatedPosition, rhs: EvaluatedPosition) -> Bool {
+            lhs.evaluation.advantage < rhs.evaluation.advantage
+        }
+        let positionsToAnalyzeFurther = evaluatedPositions.sorted(by: sideToMove == .white ? sortForWhite : sortForBlack)
+            .prefix(Config.shared.analisys.positionToAnalyzeFurtherCount)
+
+        await withTaskGroup(of: Double.self) { group in
+            for positionToAnalyzeFurther in positionsToAnalyzeFurther {
                 group.addTask {
-                    await analyze(
-                        position: posAfterMove,
-                        parentMoveId: moveId,
+                await analyze(
+                    position: positionToAnalyzeFurther.position,
+                        movesToThisPosition: movesToThisPosition.map { $0 + [positionToAnalyzeFurther.afterMove] },
+                        ourSide: ourSide,
+                        parentMoveId: positionToAnalyzeFurther.afterMove.id,
                         currentDepth: currentDepth + 1,
                         configuration: configuration,
                         positionEvaluator: positionEvaluator,
                         legalMoveGenerator: legalMoveGenerator,
-                        decider: decider,
                         evaluationCache: evaluationCache
                     )
                 }
             }
+
+            for await sub in group {
+                advantageSum += sub
+            }
         }
+
+        return advantageSum
+    }
+}
+
+extension EngineImpl.EvaluatedRootMove: CustomStringConvertible {
+    var description: String {
+        "\(move) Aggregated advantage=\(aggregatedAdvantage)"
     }
 }

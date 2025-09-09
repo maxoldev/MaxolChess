@@ -88,7 +88,7 @@ extension Piece: CustomStringConvertible {
         char()
     }
 
-    public func char(unicode: Bool = Config.unicodePieceNotation) -> String {
+    public func char(unicode: Bool = Config.shared.log.useUnicodePieceNotation) -> String {
         if unicode {
             switch color {
             case .white:

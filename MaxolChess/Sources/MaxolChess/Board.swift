@@ -49,7 +49,7 @@ public struct Board: Equatable, Sendable {
 
 extension Board: CustomStringConvertible {
     public var description: String {
-        self.multiline(unicode: Config.unicodePieceNotation)
+        self.multiline(unicode: Config.shared.log.useUnicodePieceNotation)
     }
 }
 
@@ -94,7 +94,7 @@ extension Board {
         return rankSquares
     }
 
-    public func multiline(unicode: Bool = Config.unicodePieceNotation) -> String {
+    public func multiline(unicode: Bool = Config.shared.log.useUnicodePieceNotation) -> String {
         let main: String = ranks.enumerated().reversed().map { index, rank in
             "\(index + 1)  " + rank.map { $0.map { $0.char(unicode: unicode) } ?? "." }.joined(separator: " ") + " "
         }.joined(separator: "\n")
