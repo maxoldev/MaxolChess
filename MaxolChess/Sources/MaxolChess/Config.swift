@@ -7,6 +7,7 @@
 
 public struct Config {
     public struct Analisys {
+        public let multithreaded: Bool
         public let positionToAnalyzeFurtherCount: Int
     }
 
@@ -31,7 +32,10 @@ public struct Config {
     public let log: Log
 
     nonisolated(unsafe) public static var shared: Config = Config(
-        analisys: Analisys(positionToAnalyzeFurtherCount: 5),
+        analisys: Analisys(
+            multithreaded: true,
+            positionToAnalyzeFurtherCount: 5
+        ),
         log: Log(
             useUnicodePieceNotation: false,
             moveId: true,
@@ -42,7 +46,10 @@ public struct Config {
         )
     )
     nonisolated(unsafe) public static let game: Config = Config(
-        analisys: Analisys(positionToAnalyzeFurtherCount: 5),
+        analisys: Analisys(
+            multithreaded: true,
+            positionToAnalyzeFurtherCount: 5
+        ),
         log: Log(
             useUnicodePieceNotation: true,
             moveId: true,
@@ -53,7 +60,10 @@ public struct Config {
         )
     )
     nonisolated(unsafe) public static let performanceTestConfig: Config = Config(
-        analisys: Analisys(positionToAnalyzeFurtherCount: 5),
+        analisys: Analisys(
+            multithreaded: true,
+            positionToAnalyzeFurtherCount: 5
+        ),
         log: Log(
             useUnicodePieceNotation: false,
             moveId: false,

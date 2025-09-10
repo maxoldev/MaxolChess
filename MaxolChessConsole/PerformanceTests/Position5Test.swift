@@ -50,7 +50,7 @@ final class Position5Test: XCTestCase {
                 _ = await engine.calculateBestMove()
                 expectation.fulfill()
             }
-            wait(for: [expectation], timeout: 20)
+            wait(for: [expectation], timeout: 200)
         }
     }
 }

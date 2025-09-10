@@ -254,25 +254,41 @@ public final class EngineImpl: Engine {
         let positionsToAnalyzeFurther = evaluatedPositions.sorted(by: sideToMove == .white ? sortForWhite : sortForBlack)
             .prefix(Config.shared.analisys.positionToAnalyzeFurtherCount)
 
-        await withTaskGroup(of: Double.self) { group in
-            for positionToAnalyzeFurther in positionsToAnalyzeFurther {
-                group.addTask {
-                await analyze(
-                    position: positionToAnalyzeFurther.position,
-                        movesToThisPosition: movesToThisPosition.map { $0 + [positionToAnalyzeFurther.afterMove] },
-                        ourSide: ourSide,
-                        parentMoveId: positionToAnalyzeFurther.afterMove.id,
-                        currentDepth: currentDepth + 1,
-                        configuration: configuration,
-                        positionEvaluator: positionEvaluator,
-                        legalMoveGenerator: legalMoveGenerator,
-                        evaluationCache: evaluationCache
-                    )
+        if Config.shared.analisys.multithreaded {
+            await withTaskGroup(of: Double.self) { group in
+                for positionToAnalyzeFurther in positionsToAnalyzeFurther {
+                    group.addTask {
+                    await analyze(
+                        position: positionToAnalyzeFurther.position,
+                            movesToThisPosition: movesToThisPosition.map { $0 + [positionToAnalyzeFurther.afterMove] },
+                            ourSide: ourSide,
+                            parentMoveId: positionToAnalyzeFurther.afterMove.id,
+                            currentDepth: currentDepth + 1,
+                            configuration: configuration,
+                            positionEvaluator: positionEvaluator,
+                            legalMoveGenerator: legalMoveGenerator,
+                            evaluationCache: evaluationCache
+                        )
+                    }
+                }
+
+                for await sub in group {
+                    advantageSum += sub
                 }
             }
-
-            for await sub in group {
-                advantageSum += sub
+        } else {
+            for positionToAnalyzeFurther in positionsToAnalyzeFurther {
+                advantageSum += await analyze(
+                    position: positionToAnalyzeFurther.position,
+                    movesToThisPosition: movesToThisPosition.map { $0 + [positionToAnalyzeFurther.afterMove] },
+                    ourSide: ourSide,
+                    parentMoveId: positionToAnalyzeFurther.afterMove.id,
+                    currentDepth: currentDepth + 1,
+                    configuration: configuration,
+                    positionEvaluator: positionEvaluator,
+                    legalMoveGenerator: legalMoveGenerator,
+                    evaluationCache: evaluationCache
+                )
             }
         }
 
