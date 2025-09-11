@@ -42,10 +42,7 @@ final class StartPositionTest: XCTestCase {
         measure {
             let expectation = XCTestExpectation()
             Task {
-                let engine: Engine = EngineImpl(
-                    configuration: EngineConfiguration(maxDepth: 4),
-                    gameState: GameState(position: Position.start)
-                )
+                let engine: Engine = engineForPerformaceTests(with: Position.start)
                 _ = await engine.calculateBestMove()
                 expectation.fulfill()
             }

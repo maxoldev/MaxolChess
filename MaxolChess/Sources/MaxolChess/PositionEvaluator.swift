@@ -13,7 +13,9 @@ public struct PositionEvaluation: Sendable {
         case kingStalemated
         case draw
     }
-    fileprivate let state: State
+    /// Use only for validation, decisions should be made based of advantage
+    public let state: State
+    /// Positive if white is better, negative if black is better
     public let advantage: Double
 }
 
@@ -35,7 +37,7 @@ extension PositionEvaluation: CustomStringConvertible {
     }
 }
 
-public protocol PositionEvaluator: AnyObject, Sendable {
+public protocol PositionEvaluator: Sendable {
     func evaluate(_ position: Position) -> PositionEvaluation
 }
 

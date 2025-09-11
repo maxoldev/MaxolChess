@@ -10,7 +10,7 @@ public enum PositionValidatorResult: Equatable {
     case invalid2KingsInCheck
 }
 
-public protocol PositionValidator: AnyObject {
+public protocol PositionValidator {
     func validate(_ position: Position) -> PositionValidatorResult
 }
 

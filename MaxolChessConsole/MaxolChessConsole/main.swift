@@ -20,7 +20,10 @@ print("readyok")
 Config.shared = Config.game
 
 let opponentColor = PieceColor.white
-let engine: Engine = EngineImpl(configuration: EngineConfiguration(maxDepth: 4), gameState: GameState(position: Position.start))
+let engine: Engine = EngineImpl(
+    configuration: EngineConfiguration(maxDepth: 4, collectStatistics: true),
+    gameState: GameState(position: Position.start)
+)
 let legalMoveGenerator: LegalMoveGenerator = LegalMoveGeneratorImpl()
 
 print("You are playing \(opponentColor)")

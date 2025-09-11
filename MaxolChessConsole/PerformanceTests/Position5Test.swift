@@ -1,5 +1,5 @@
 //
-//  PerformanceTest.swift
+//  Position5Test.swift
 //  MaxolChess
 //
 //  Created by Maksim Solovev on 28.08.2025.
@@ -8,7 +8,7 @@
 import MaxolChess
 import XCTest
 
-private let pos = Position(fen: "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8")!
+private let testPosition = Position(fen: "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8")!
 
 final class Position5Test: XCTestCase {
     override class func setUp() {
@@ -19,7 +19,7 @@ final class Position5Test: XCTestCase {
         let moveGen = PossibleMoveGeneratorImpl()
 
         measure {
-            _ = moveGen.generateAllMoves(pos)
+            _ = moveGen.generateAllMoves(testPosition)
         }
     }
 
@@ -27,7 +27,7 @@ final class Position5Test: XCTestCase {
         let legalMoveGen = LegalMoveGeneratorImpl()
 
         measure {
-            _ = legalMoveGen.generateLegalMoves(pos, parentMoveId: nil)
+            _ = legalMoveGen.generateLegalMoves(testPosition, parentMoveId: nil)
         }
     }
 
@@ -35,7 +35,7 @@ final class Position5Test: XCTestCase {
         let posEvaluator = PositionEvaluatorImpl()
 
         measure {
-            _ = posEvaluator.evaluate(pos)
+            _ = posEvaluator.evaluate(testPosition)
         }
     }
 
@@ -43,14 +43,11 @@ final class Position5Test: XCTestCase {
         measure {
             let expectation = XCTestExpectation()
             Task {
-                let engine: Engine = EngineImpl(
-                    configuration: EngineConfiguration(maxDepth: 4),
-                    gameState: GameState(position: pos)
-                )
+                let engine: Engine = engineForPerformaceTests(with: testPosition)
                 _ = await engine.calculateBestMove()
                 expectation.fulfill()
             }
-            wait(for: [expectation], timeout: 200)
+            wait(for: [expectation], timeout: 20)
         }
     }
 }
